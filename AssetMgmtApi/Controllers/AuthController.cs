@@ -1,0 +1,180 @@
+using System.IdentityModel.Tokens.Jwt;
+using System.Security.Claims;
+using AssetMgmtApi.DTOs;
+using AssetMgmtApi.Models;
+using Microsoft.AspNetCore.Identity;
+using Microsoft.AspNetCore.Mvc;
+using Microsoft.AspNetCore.Authorization;
+using AssetMgmtApi.Interfaces;
+
+namespace AssetMgmtApi.Controllers
+{
+    [ApiController]
+    [Route("api/[controller]")]
+    public class AuthController : ControllerBase
+    {
+        private readonly UserManager<User> _userManager;
+        // private readonly IConfiguration _configuration;
+        private readonly IAuthRepo _authRepo;
+        private readonly IAuthService _authService;
+
+        public AuthController(
+            UserManager<User> userManager,
+            IAuthRepo authRepo,
+            IAuthService authService)
+        {
+            _userManager = userManager;
+            _authRepo = authRepo;
+            _authService = authService;
+        }
+
+
+        //register new user
+        [HttpPost("register")]
+        public async Task<IActionResult> Register([FromBody] RegisterDto registerDto)
+        {
+            var user = new User
+            {
+                FirstName = registerDto.FirstName,
+                LastName = registerDto.LastName,
+                Email = registerDto.Email,
+                UserName = registerDto.Email,
+            };
+            var result = await _userManager.CreateAsync(user, registerDto.Password);
+            if (!result.Succeeded)
+                return BadRequest(result.Errors);
+            return Ok("user created successfully");
+        }
+
+        //login
+        [HttpPost("login")]
+        public async Task<IActionResult> Login([FromBody] LoginDto loginDto)
+        {
+            var user = await _userManager.FindByEmailAsync(loginDto.Email);
+            if (user == null || !await _userManager.CheckPasswordAsync(user, loginDto.Password))
+            {
+                return Unauthorized();
+            }
+
+            var accessToken = _authService.GenerateAccessToken(user);
+            var refreshToken = await CreateAndStoreRefreshToken(user.Id);
+
+            // Set the refresh token in a secure, HttpOnly cookie
+            SetRefreshTokenCookie(refreshToken);
+
+            return Ok(new { accessToken = new JwtSecurityTokenHandler().WriteToken(accessToken) });
+        }
+
+
+        /// <summary>
+        /// Generates a new refresh token for the specified user, saves it to the database, and returns the created token.
+        /// </summary>
+        /// <param name="user">The user for whom the refresh token is being generated.</param>
+        /// <returns>
+        /// A task that represents the asynchronous operation. The task result contains the newly created <see cref="RefreshToken"/>.
+        /// </returns>
+        private async Task<RefreshToken> CreateAndStoreRefreshToken(Guid userId)
+        {
+            // Delete expired refresh tokens for this user
+            await _authRepo.GetExpiredRefreshTokensAsync(userId);
+
+            var refreshToken = await _authRepo.AddRefreshTokenAsync(userId);
+            SetRefreshTokenCookie(refreshToken);
+            return refreshToken;
+        }
+
+
+        // Helper method to set the cookie
+        private void SetRefreshTokenCookie(RefreshToken refreshToken)
+        {
+            var cookieOptions = new CookieOptions
+            {
+                HttpOnly = true,
+                Secure = true,
+                SameSite = SameSiteMode.Strict,
+                Expires = refreshToken.Expires
+            };
+            Response.Cookies.Append("X-Refresh-Token", refreshToken.Token, cookieOptions);
+        }
+
+
+
+
+        [HttpGet("profile")]
+        [Authorize]
+        public async Task<IActionResult> GetProfile()
+        {
+            var userId = User.FindFirstValue(ClaimTypes.NameIdentifier);
+            if (userId == null)
+            {
+                return Unauthorized();
+            }
+
+            var user = await _userManager.FindByIdAsync(userId);
+            if (user == null)
+            {
+                return NotFound();
+            }
+
+            return Ok(new
+            {
+                user.FirstName,
+                user.LastName,
+                user.Email
+            });
+        }
+
+
+        [HttpPost("refresh-token")]
+        public async Task<IActionResult> RefreshToken()
+        {
+            var refreshTokenString = Request.Cookies["X-Refresh-Token"];
+
+            if (string.IsNullOrEmpty(refreshTokenString))
+                return Unauthorized(new { Message = "Missing refresh token."});
+
+                var result = await _authService.RefreshTokenAsync(refreshTokenString);
+
+            if (!result.IsSuccess)
+            {
+                // The service provides the reason, so the controller doesn't need to know why.
+                return Unauthorized(new { message = result.ErrorMessage });
+            }
+            SetRefreshTokenCookie(result.NewRefreshToken!);
+            return Ok(new { accessToken = result.AccessToken });
+        }
+
+
+
+
+        [Authorize]
+        [HttpGet("test")]
+        public IActionResult Test()
+        {
+            return Ok("This is a test endpoint for authenticated users.");
+        }
+
+
+
+
+        [HttpPost("logout")]
+        [Authorize]
+        public async Task<IActionResult> Logout()
+        {
+            var refreshTokenString = Request.Cookies["X-Refresh-Token"];
+            if (string.IsNullOrEmpty(refreshTokenString))
+                return BadRequest("no refresh token to invalidate");
+
+            var storedToken = await _authRepo.GetRefreshTokenAsync(refreshTokenString);
+            if (storedToken != null)
+            {
+                await _authRepo.RevokeTokenAsync(refreshTokenString);
+            }
+
+            Response.Cookies.Delete("X-Refresh-Token");
+
+            return Ok(new { message = "Logout successfully" });
+        }
+
+    }
+}
