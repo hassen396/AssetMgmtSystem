@@ -76,14 +76,17 @@ namespace AssetMgmtApi.Services
         //generate a access token
         public JwtSecurityToken GenerateAccessToken(User user)
         {
+            var roles = _userManager.GetRolesAsync(user).Result; // TODO: make this method async
 
-            var claims = new[]
+            var claims = new List<Claim>
             {
-            // new Claim(JwtRegisteredClaimNames.Sub, user.Id.ToString()),
+            new Claim(JwtRegisteredClaimNames.Sub, user.Id.ToString()),
             new Claim(JwtRegisteredClaimNames.Jti, Guid.NewGuid().ToString()),
             new Claim(ClaimTypes.NameIdentifier, user.Id.ToString()),
             new Claim(ClaimTypes.Email, user.Email!),
         };
+
+            claims.AddRange(roles.Select(r => new Claim(ClaimTypes.Role, r)));
 
             var key = new SymmetricSecurityKey(Encoding.UTF8.GetBytes(_configuration["Jwt:Key"]!));
             var creds = new SigningCredentials(key, SecurityAlgorithms.HmacSha256);
@@ -92,12 +95,10 @@ namespace AssetMgmtApi.Services
                 issuer: _configuration["Jwt:Issuer"],
                 audience: _configuration["Jwt:Audience"],
                 claims: claims,
-                expires: DateTime.UtcNow.AddMinutes(15),
+                expires: DateTime.UtcNow.AddMinutes(150),
                 signingCredentials: creds
             );
             return accessToken;
-            // return Ok(new { accessToken = new JwtSecurityTokenHandler().WriteToken(accessToken) });
-
         }
     }
 }

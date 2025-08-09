@@ -7,6 +7,6 @@ namespace AssetMgmtApi.Interfaces
     public interface IAuthService
     {
         Task<TokenRefreshResult> RefreshTokenAsync(string refreshTokenString);
-        public JwtSecurityToken GenerateAccessToken(User user);
+        JwtSecurityToken GenerateAccessToken(User user);
     }
 }

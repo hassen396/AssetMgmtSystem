@@ -5,6 +5,7 @@
 
 # vscode extensions
 .vscode
+.qodo
 # User-specific files
 *.rsuser
 *.suo
@@ -401,3 +402,4 @@ FodyWeavers.xsd
 
 .containers/
 .DS_Store
+archive.cs

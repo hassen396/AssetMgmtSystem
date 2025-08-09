@@ -8,7 +8,7 @@ namespace AssetMgmtApi.Interfaces
         
         public Task<RefreshToken> AddRefreshTokenAsync(Guid userId);
 
-        public Task<RefreshToken> GetRefreshTokenAsync(string refreshTokenString);
+        public Task<RefreshToken?> GetRefreshTokenAsync(string refreshTokenString);
 
         public Task RevokeTokenAsync(string refreshTokenString);
 

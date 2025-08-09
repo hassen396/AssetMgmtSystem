@@ -17,15 +17,19 @@ namespace AssetMgmtApi.Controllers
         // private readonly IConfiguration _configuration;
         private readonly IAuthRepo _authRepo;
         private readonly IAuthService _authService;
+        private readonly RoleManager<IdentityRole<Guid>> _roleManager;
 
         public AuthController(
             UserManager<User> userManager,
             IAuthRepo authRepo,
-            IAuthService authService)
+            IAuthService authService,
+            RoleManager<IdentityRole<Guid>> roleManager)
         {
             _userManager = userManager;
             _authRepo = authRepo;
             _authService = authService;
+            _roleManager = roleManager;
+
         }
 
 
@@ -43,8 +47,25 @@ namespace AssetMgmtApi.Controllers
             var result = await _userManager.CreateAsync(user, registerDto.Password);
             if (!result.Succeeded)
                 return BadRequest(result.Errors);
+
+            if (!await _userManager.IsInRoleAsync(user, registerDto.Role))
+            {
+                var roleExists = await _roleManager.RoleExistsAsync(registerDto.Role);
+                if (!roleExists)
+                    return BadRequest(new { message = $"Role '{registerDto.Role}' does not exist." });
+            }
+
+            await _userManager.AddToRoleAsync(user, registerDto.Role);
+
             return Ok("user created successfully");
         }
+        [Authorize(Roles = "User")]
+        [HttpGet("test-with-User-role")]
+        public IActionResult TestUerRole()
+        {
+            return Ok("User role able to access User tole protected end point");
+        }
+
 
         //login
         [HttpPost("login")]
@@ -131,9 +152,9 @@ namespace AssetMgmtApi.Controllers
             var refreshTokenString = Request.Cookies["X-Refresh-Token"];
 
             if (string.IsNullOrEmpty(refreshTokenString))
-                return Unauthorized(new { Message = "Missing refresh token."});
+                return Unauthorized(new { Message = "Missing refresh token." });
 
-                var result = await _authService.RefreshTokenAsync(refreshTokenString);
+            var result = await _authService.RefreshTokenAsync(refreshTokenString);
 
             if (!result.IsSuccess)
             {
