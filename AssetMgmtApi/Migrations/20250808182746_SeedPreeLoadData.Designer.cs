@@ -3,6 +3,7 @@ using System;
 using AssetMgmtApi.Data;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Infrastructure;
+using Microsoft.EntityFrameworkCore.Migrations;
 using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 using Npgsql.EntityFrameworkCore.PostgreSQL.Metadata;
 
@@ -11,9 +12,11 @@ using Npgsql.EntityFrameworkCore.PostgreSQL.Metadata;
 namespace AssetMgmtApi.Migrations
 {
     [DbContext(typeof(ApplicationDbContext))]
-    partial class ApplicationDbContextModelSnapshot : ModelSnapshot
+    [Migration("20250808182746_SeedPreeLoadData")]
+    partial class SeedPreeLoadData
     {
-        protected override void BuildModel(ModelBuilder modelBuilder)
+        /// <inheritdoc />
+        protected override void BuildTargetModel(ModelBuilder modelBuilder)
         {
 #pragma warning disable 612, 618
             modelBuilder
@@ -53,7 +56,7 @@ namespace AssetMgmtApi.Migrations
 
                     b.HasKey("Id");
 
-                    b.ToTable("Assets", (string)null);
+                    b.ToTable("Assets");
                 });
 
             modelBuilder.Entity("AssetMgmtApi.Models.AssetRequest", b =>
@@ -79,7 +82,7 @@ namespace AssetMgmtApi.Migrations
 
                     b.HasIndex("AssetId");
 
-                    b.ToTable("AssetRequests", (string)null);
+                    b.ToTable("AssetRequests");
                 });
 
             modelBuilder.Entity("AssetMgmtApi.Models.RefreshToken", b =>
@@ -108,7 +111,7 @@ namespace AssetMgmtApi.Migrations
 
                     b.HasIndex("UserId");
 
-                    b.ToTable("RefreshTokens", (string)null);
+                    b.ToTable("RefreshTokens");
                 });
 
             modelBuilder.Entity("AssetMgmtApi.Models.User", b =>

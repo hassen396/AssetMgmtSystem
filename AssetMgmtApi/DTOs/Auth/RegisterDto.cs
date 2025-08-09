@@ -16,5 +16,7 @@ namespace AssetMgmtApi.DTOs
         [Compare("Password", ErrorMessage = "Passwords do not match")]
         [DataType(DataType.Password)]
         public string ConfirmPassword { get; set; } = string.Empty;
+
+        public string Role { get; set; } = "User";
     }
 }
