@@ -87,13 +87,6 @@ namespace AssetMgmtApi.Controllers
         }
 
 
-        /// <summary>
-        /// Generates a new refresh token for the specified user, saves it to the database, and returns the created token.
-        /// </summary>
-        /// <param name="user">The user for whom the refresh token is being generated.</param>
-        /// <returns>
-        /// A task that represents the asynchronous operation. The task result contains the newly created <see cref="RefreshToken"/>.
-        /// </returns>
         private async Task<RefreshToken> CreateAndStoreRefreshToken(Guid userId)
         {
             // Delete expired refresh tokens for this user

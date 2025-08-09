@@ -1,8 +1,5 @@
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Authorization;
-using AssetMgmtApi.Data;
-using AssetMgmtApi.Models;
-using Microsoft.EntityFrameworkCore;
 using AssetMgmtApi.Interfaces;
 using AssetMgmtApi.Mappers;
 using AssetMgmtApi.DTOs;
@@ -13,11 +10,9 @@ namespace AssetMgmtApi.Controllers
     [Route("api/[controller]")]
     public class AssetsController : ControllerBase
     {
-        private readonly ApplicationDbContext _db;
         private readonly IAssetRepo _assetRepo;
-        public AssetsController(ApplicationDbContext db, IAssetRepo assetRepo)
+        public AssetsController(IAssetRepo assetRepo)
         {
-            _db = db;
             _assetRepo = assetRepo;
         }
 
@@ -28,7 +23,7 @@ namespace AssetMgmtApi.Controllers
             var assets = await _assetRepo.GetAllAssetsAsync();
             if (assets == null)
                 return NotFound("No asset is available");
-            var assetsDto = assets.Select(AssetExportMapper.MapToDto);
+            var assetsDto = assets.Select(AssetExportMapper.MapToDto).ToList();
             return Ok(assetsDto);
         }
 
@@ -71,21 +66,19 @@ namespace AssetMgmtApi.Controllers
 
                 //map to Asset
             var asset = DtoExportMapper.MapFromDto(createAssetDto);
-
-            var updatedAsset = await _assetRepo.UpdateAssetAsync(asset);
+            var updatedAsset = await _assetRepo.UpdateAssetAsync(asset, id);
             var updatedAssetDto = AssetExportMapper.MapToDto(updatedAsset!);
-            return Ok(new { updatedAssetDto });
+            return Ok(updatedAssetDto);
         }
 
         [HttpDelete("{id}")]
         [Authorize(Roles = "Admin")]
         public async Task<IActionResult> Delete(Guid id)
         {
-            var asset = await _db.Assets.FindAsync(id);
-            if (asset == null) return NotFound();
-            _db.Assets.Remove(asset);
-            await _db.SaveChangesAsync();
-            return NoContent();
+            var assetExists = await _assetRepo.AssetExistAsync(id);
+            if (!assetExists) return NotFound(new { Message = "Asset not not exist!" });
+            await _assetRepo.DeleteAssetAsync(id);
+            return NotFound(new { Message = "Deleted Succussfully" });
         }
     }
 }
