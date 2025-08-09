@@ -31,7 +31,7 @@ namespace AssetMgmtApi.Controllers
 
             var request = new AssetRequest
             {
-                UserId = userId,
+                UserId = Guid.Parse(userId),
                 AssetId = dto.AssetId,
                 Status = RequestStatus.Pending
             };
@@ -58,7 +58,7 @@ namespace AssetMgmtApi.Controllers
 
         [HttpPost("{id}/reject")]
         [Authorize(Roles = "Admin")]
-        public async Task<IActionResult> Reject(int id)
+        public async Task<IActionResult> Reject(Guid id)
         {
             var req = await _db.AssetRequests.FindAsync(id);
             if (req == null) return NotFound();
@@ -71,6 +71,6 @@ namespace AssetMgmtApi.Controllers
 
     public class CreateRequestDto
     {
-        public int AssetId { get; set; }
+        public Guid AssetId { get; set; }
     }
 }

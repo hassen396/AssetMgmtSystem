@@ -24,11 +24,9 @@ namespace AssetMgmtApi.Migrations
 
             modelBuilder.Entity("AssetMgmtApi.Models.Asset", b =>
                 {
-                    b.Property<int>("Id")
+                    b.Property<Guid>("Id")
                         .ValueGeneratedOnAdd()
-                        .HasColumnType("integer");
-
-                    NpgsqlPropertyBuilderExtensions.UseIdentityByDefaultColumn(b.Property<int>("Id"));
+                        .HasColumnType("uuid");
 
                     b.Property<string>("Category")
                         .IsRequired()
@@ -42,7 +40,7 @@ namespace AssetMgmtApi.Migrations
                         .HasColumnType("text");
 
                     b.Property<DateTime>("PurchaseDate")
-                        .HasColumnType("timestamp with time zone");
+                        .HasColumnType("timestamp without time zone");
 
                     b.Property<string>("SerialNumber")
                         .IsRequired()
@@ -53,7 +51,7 @@ namespace AssetMgmtApi.Migrations
 
                     b.HasKey("Id");
 
-                    b.ToTable("Assets", (string)null);
+                    b.ToTable("Assets");
                 });
 
             modelBuilder.Entity("AssetMgmtApi.Models.AssetRequest", b =>
@@ -62,24 +60,23 @@ namespace AssetMgmtApi.Migrations
                         .ValueGeneratedOnAdd()
                         .HasColumnType("uuid");
 
-                    b.Property<int>("AssetId")
-                        .HasColumnType("integer");
+                    b.Property<Guid>("AssetId")
+                        .HasColumnType("uuid");
 
                     b.Property<DateTime>("RequestDate")
-                        .HasColumnType("timestamp with time zone");
+                        .HasColumnType("timestamp without time zone");
 
                     b.Property<int>("Status")
                         .HasColumnType("integer");
 
-                    b.Property<string>("UserId")
-                        .IsRequired()
-                        .HasColumnType("text");
+                    b.Property<Guid>("UserId")
+                        .HasColumnType("uuid");
 
                     b.HasKey("Id");
 
                     b.HasIndex("AssetId");
 
-                    b.ToTable("AssetRequests", (string)null);
+                    b.ToTable("AssetRequests");
                 });
 
             modelBuilder.Entity("AssetMgmtApi.Models.RefreshToken", b =>
@@ -89,10 +86,10 @@ namespace AssetMgmtApi.Migrations
                         .HasColumnType("uuid");
 
                     b.Property<DateTime>("Created")
-                        .HasColumnType("timestamp with time zone");
+                        .HasColumnType("timestamp without time zone");
 
                     b.Property<DateTime>("Expires")
-                        .HasColumnType("timestamp with time zone");
+                        .HasColumnType("timestamp without time zone");
 
                     b.Property<bool>("IsRevoked")
                         .HasColumnType("boolean");
@@ -108,7 +105,7 @@ namespace AssetMgmtApi.Migrations
 
                     b.HasIndex("UserId");
 
-                    b.ToTable("RefreshTokens", (string)null);
+                    b.ToTable("RefreshTokens");
                 });
 
             modelBuilder.Entity("AssetMgmtApi.Models.User", b =>

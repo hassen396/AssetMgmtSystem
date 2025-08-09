@@ -87,11 +87,11 @@ namespace AssetMgmtApi.Data
             {
                 var assets = new List<Asset>
                 {
-                    new Asset { Id = 1, Name = "Dell XPS 13", Category = "Laptop", SerialNumber = "DX13-001", PurchaseDate = new DateTime(2022, 1, 10), Status = AssetStatus.Available },
-                    new Asset { Id = 2, Name = "MacBook Pro 14", Category = "Laptop", SerialNumber = "MBP14-002", PurchaseDate = new DateTime(2023, 3, 1), Status = AssetStatus.Available },
-                    new Asset { Id = 3, Name = "iPhone 13", Category = "Phone", SerialNumber = "IPH13-003", PurchaseDate = new DateTime(2022, 6, 21), Status = AssetStatus.Available },
-                    new Asset { Id = 4, Name = "Dell Monitor 24\"", Category = "Monitor", SerialNumber = "DM24-004", PurchaseDate = new DateTime(2021, 11, 30), Status = AssetStatus.Available },
-                    new Asset { Id = 5, Name = "Logitech Mouse", Category = "Accessory", SerialNumber = "LM-005", PurchaseDate = new DateTime(2020, 5, 5), Status = AssetStatus.Available }
+                    new Asset { Id = Guid.NewGuid(), Name = "Dell XPS 13", Category = "Laptop", SerialNumber = "DX13-001", PurchaseDate = new DateTime(2022, 1, 10), Status = AssetStatus.Available },
+                    new Asset { Id = Guid.NewGuid(), Name = "MacBook Pro 14", Category = "Laptop", SerialNumber = "MBP14-002", PurchaseDate = new DateTime(2023, 3, 1), Status = AssetStatus.Available },
+                    new Asset { Id = Guid.NewGuid(), Name = "iPhone 13", Category = "Phone", SerialNumber = "IPH13-003", PurchaseDate = new DateTime(2022, 6, 21), Status = AssetStatus.Available },
+                    new Asset { Id = Guid.NewGuid(), Name = "Dell Monitor 24\"", Category = "Monitor", SerialNumber = "DM24-004", PurchaseDate = new DateTime(2021, 11, 30), Status = AssetStatus.Available },
+                    new Asset { Id = Guid.NewGuid(), Name = "Logitech Mouse", Category = "Accessory", SerialNumber = "LM-005", PurchaseDate = new DateTime(2020, 5, 5), Status = AssetStatus.Available }
                 };
 
                 await context.Assets.AddRangeAsync(assets);

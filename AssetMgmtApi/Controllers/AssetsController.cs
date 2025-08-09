@@ -3,6 +3,9 @@ using Microsoft.AspNetCore.Authorization;
 using AssetMgmtApi.Data;
 using AssetMgmtApi.Models;
 using Microsoft.EntityFrameworkCore;
+using AssetMgmtApi.Interfaces;
+using AssetMgmtApi.Mappers;
+using AssetMgmtApi.DTOs;
 
 namespace AssetMgmtApi.Controllers
 {
@@ -11,49 +14,72 @@ namespace AssetMgmtApi.Controllers
     public class AssetsController : ControllerBase
     {
         private readonly ApplicationDbContext _db;
-        public AssetsController(ApplicationDbContext db) => _db = db;
+        private readonly IAssetRepo _assetRepo;
+        public AssetsController(ApplicationDbContext db, IAssetRepo assetRepo)
+        {
+            _db = db;
+            _assetRepo = assetRepo;
+        }
 
         [HttpGet]
-        // [Authorize]
-        public async Task<IActionResult> GetAssets() => Ok(await _db.Assets.ToListAsync());
+        [Authorize]
+        public async Task<IActionResult> GetAssets()
+        {
+            var assets = await _assetRepo.GetAllAssetsAsync();
+            if (assets == null)
+                return NotFound("No asset is available");
+            var assetsDto = assets.Select(AssetExportMapper.MapToDto);
+            return Ok(assetsDto);
+        }
 
         [HttpGet("{id}")]
         [Authorize]
-        public async Task<IActionResult> Get(int id)
+        public async Task<IActionResult> Get(Guid id)
         {
-            var asset = await _db.Assets.FindAsync(id);
-            if (asset == null) return NotFound();
-            return Ok(asset);
+            var asset = await _assetRepo.GetAssetByIdAsync(id);
+            //map the dommai asset to a respective dto
+            if (asset == null) return NotFound("no asset was found with the specified id");
+            var assetDto = AssetExportMapper.MapToDto(asset);
+            return Ok(assetDto);
         }
 
         [HttpPost]
         [Authorize(Roles = "Admin")]
-        public async Task<IActionResult> Create([FromBody] Asset asset)
+        public async Task<IActionResult> Create([FromBody] CreateUpdateAssetDto createAssetDto)
         {
-            _db.Assets.Add(asset);
-            await _db.SaveChangesAsync();
-            return CreatedAtAction(nameof(Get), new { id = asset.Id }, asset);
+            // if()
+            //map from the dto to the domain
+            var asset = DtoExportMapper.MapFromDto(createAssetDto);
+            var savedAsset = await _assetRepo.CreatAssetAsync(asset);
+            var assetDto = AssetExportMapper.MapToDto(asset);
+            return CreatedAtAction(nameof(Get), new { id = assetDto.Id }, createAssetDto);
         }
 
         [HttpPut("{id}")]
         [Authorize(Roles = "Admin")]
-        public async Task<IActionResult> Update(int id, Asset model)
+        public async Task<IActionResult> Update(Guid id, CreateUpdateAssetDto createAssetDto)
         {
-            var asset = await _db.Assets.FindAsync(id);
-            if (asset == null) return NotFound();
-            asset.Name = model.Name;
-            asset.Category = model.Category;
-            asset.SerialNumber = model.SerialNumber;
-            asset.PurchaseDate = model.PurchaseDate;
-            asset.Status = model.Status;
-            asset.ImageUrl = model.ImageUrl;
-            await _db.SaveChangesAsync();
-            return NoContent();
+            //check if it exists in the database
+            var assetExists = await _assetRepo.AssetExistAsync(id);
+            if (!assetExists)
+            {
+                return BadRequest("There is no asset with this id");
+            }
+
+            if (createAssetDto == null)
+                return BadRequest("please fill the form");
+
+                //map to Asset
+            var asset = DtoExportMapper.MapFromDto(createAssetDto);
+
+            var updatedAsset = await _assetRepo.UpdateAssetAsync(asset);
+            var updatedAssetDto = AssetExportMapper.MapToDto(updatedAsset!);
+            return Ok(new { updatedAssetDto });
         }
 
         [HttpDelete("{id}")]
         [Authorize(Roles = "Admin")]
-        public async Task<IActionResult> Delete(int id)
+        public async Task<IActionResult> Delete(Guid id)
         {
             var asset = await _db.Assets.FindAsync(id);
             if (asset == null) return NotFound();

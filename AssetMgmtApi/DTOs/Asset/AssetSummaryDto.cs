@@ -1,9 +1,8 @@
+using AssetMgmtApi.Models;
 
-using System;
-
-namespace AssetMgmtApi.Models
+namespace AssetMgmtApi.DTOs
 {
-    public class Asset
+    public class AssetSummaryDto
     {
         public Guid Id { get; set; }
         public string Name { get; set; } = null!;
@@ -11,12 +10,6 @@ namespace AssetMgmtApi.Models
         public string SerialNumber { get; set; } = null!;
         public DateTime PurchaseDate { get; set; }
         public AssetStatus Status { get; set; } = AssetStatus.Available;
-        public string? ImageUrl { get; set; } // optional
-    }
-
-    public enum AssetStatus
-    {
-        Available,
-        Assigned
+        public string? ImageUrl { get; set; }
     }
 }

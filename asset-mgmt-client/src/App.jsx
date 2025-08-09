@@ -1,37 +1,60 @@
-import React from "react";
-import { BrowserRouter, Routes, Route, Navigate } from "react-router-dom";
-import { AuthProvider, AuthContext } from "./context/AuthContext";
-import LoginPage from "./pages/LoginPage";
-import RegisterPage from "./pages/RegisterPage.jsx";
-import UserDashboard from "./pages/UserDashboard";
-import AdminDashboard from "./pages/AdminDashboard.jsx";
+import React, { useContext } from "react";
+import { BrowserRouter as Router, Routes, Route, Navigate } from "react-router-dom";
 
-function ProtectedRoute({ children, role }) {
-  const { user } = React.useContext(AuthContext);
-  if (!user) return <Navigate to="/login" />;
-  if (role && user.role !== role) return <Navigate to="/" />;
+import AuthContext from "./context/AuthContext";
+import AuthProvider from "./context/AuthProvider";
+
+
+import Login from "./components/Auth/Login";
+// import Register from "./components/Auth/Register";
+import UserAssets from "./components/User/AssetList";
+import AdminAssets from "./components/Admin/AssetList";
+import AdminRequests from "./components/Admin/RequestList";
+
+const RequireAuth = ({ children, role }) => {
+  const { user } = useContext(AuthContext);
+  if (!user) return <Navigate to="/login" replace />;
+  if (role && user.role !== role) return <Navigate to="/" replace />;
   return children;
+};
+
+function App() {
+  const { user } = useContext(AuthContext);
+
+  return (
+    <Router>
+      <div className="min-h-screen bg-gray-100">
+        <Routes>
+          <Route path="/login" element={<Login />} />
+          {/* <Route path="/register" element={<Register />} /> */}
+
+          <Route
+            path="/"
+            element={
+              <RequireAuth>
+                {user?.role === "Admin" ? <AdminAssets /> : <UserAssets />}
+              </RequireAuth>
+            }
+          />
+
+          <Route
+            path="/admin/requests"
+            element={
+              <RequireAuth role="Admin">
+                <AdminRequests />
+              </RequireAuth>
+            }
+          />
+        </Routes>
+      </div>
+    </Router>
+  );
 }
 
-export default function App() {
+export default function AppWrapper() {
   return (
     <AuthProvider>
-      <BrowserRouter>
-        <Routes>
-          <Route path="/login" element={<LoginPage />} />
-          <Route path="/register" element={<RegisterPage />} />
-          <Route path="/" element={
-            <ProtectedRoute>
-              <UserDashboard />
-            </ProtectedRoute>
-          } />
-          <Route path="/admin" element={
-            <ProtectedRoute role="Admin">
-              <AdminDashboard />
-            </ProtectedRoute>
-          } />
-        </Routes>
-      </BrowserRouter>
+      <App />
     </AuthProvider>
   );
 }

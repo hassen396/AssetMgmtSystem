@@ -95,7 +95,7 @@ namespace AssetMgmtApi.Services
                 issuer: _configuration["Jwt:Issuer"],
                 audience: _configuration["Jwt:Audience"],
                 claims: claims,
-                expires: DateTime.UtcNow.AddMinutes(15),
+                expires: DateTime.UtcNow.AddMinutes(150),
                 signingCredentials: creds
             );
             return accessToken;

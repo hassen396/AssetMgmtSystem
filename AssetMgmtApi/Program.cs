@@ -16,6 +16,7 @@ var builder = WebApplication.CreateBuilder(args);
 
 builder.Services.AddScoped<IAuthRepo, AuthRepo>();
 builder.Services.AddScoped<IAuthService, AuthService>();
+builder.Services.AddScoped<IAssetRepo, AssetRepo>();
 // Add services to the container.
 // Learn more about configuring OpenAPI at https://aka.ms/aspnet/openapi
 builder.Services.AddControllers();
@@ -86,7 +87,7 @@ builder.Services.AddSwaggerGen(options =>
 
 builder.Services.AddCors(options =>
 {
-    options.AddPolicy("AllowLocal", p => p.AllowAnyHeader().AllowAnyMethod().WithOrigins("http://localhost:3000"));
+    options.AddPolicy("AllowLocal", p => p.AllowAnyHeader().AllowAnyMethod().WithOrigins("http://localhost:5173"));
 });
 var app = builder.Build();
 
