@@ -9,7 +9,7 @@ namespace AssetMgmtApi.DTOs
         public string Category { get; set; } = null!;
         public string SerialNumber { get; set; } = null!;
         public DateTime PurchaseDate { get; set; }
-        public AssetStatus Status { get; set; } = AssetStatus.Available;
+        public int Status { get; set; } = 0; // i should use 0 = Available, 1 = Assigned
         public string? ImageUrl { get; set; }
     }
 }

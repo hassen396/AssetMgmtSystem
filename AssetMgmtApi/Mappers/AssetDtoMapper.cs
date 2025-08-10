@@ -5,7 +5,7 @@ namespace AssetMgmtApi.Mappers
 {
     public class AssetExportMapper
     {
-        // Methods for Asset <-> DTO conversions
+
         public static AssetSummaryDto MapToDto(Asset asset)
         {
             return new AssetSummaryDto
@@ -15,7 +15,7 @@ namespace AssetMgmtApi.Mappers
                 Category = asset.Category,
                 SerialNumber = asset.SerialNumber,
                 PurchaseDate = asset.PurchaseDate,
-                Status = asset.Status,
+                Status = (int)asset.Status,
                 ImageUrl = asset.ImageUrl
             };
         }
@@ -30,8 +30,8 @@ namespace AssetMgmtApi.Mappers
                 Category = createUpdateDto.Category,
                 SerialNumber = createUpdateDto.SerialNumber,
                 PurchaseDate = createUpdateDto.PurchaseDate,
-                Status = createUpdateDto.Status,
-                ImageUrl = createUpdateDto.ImageUrl
+                Status = (AssetStatus)createUpdateDto.Status,
+                // ImageUrl = createUpdateDto.ImageUrl
             };
         }
         

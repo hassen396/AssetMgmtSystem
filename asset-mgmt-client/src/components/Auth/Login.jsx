@@ -1,55 +1,113 @@
-import React, { useState, useContext } from "react";
-import api from "../../api/api";
-import AuthContext  from "../../context/AuthContext";
-import { useNavigate, Link } from "react-router-dom";
+import { useState } from 'react';
+import { Link, useNavigate } from 'react-router-dom';
+import { useAuth } from '../../contexts/AuthContext';
 
 export default function Login() {
-  const [email, setEmail] = useState("");
-  const [password, setPassword] = useState("");
-  const [error, setError] = useState(null);
-  const { login } = useContext(AuthContext);
+  const [formData, setFormData] = useState({
+    email: '',
+    password: '',
+  });
+  const [loading, setLoading] = useState(false);
+  const [error, setError] = useState('');
+  
+  const { login } = useAuth();
   const navigate = useNavigate();
+
+  const handleChange = (e) => {
+    setFormData({
+      ...formData,
+      [e.target.name]: e.target.value,
+    });
+  };
 
   const handleSubmit = async (e) => {
     e.preventDefault();
-    try {
-      const res = await api.post("/Auth/login", { email, password });
-      login(res.data.token); // assuming backend returns { token: "jwt" }
-      navigate("/");
-    } catch (err) {
-      setError(err.response?.data?.message || "Login failed");
+    setLoading(true);
+    setError('');
+
+    const result = await login(formData.email, formData.password);
+    
+    if (result.success) {
+      navigate('/');
+    } else {
+      setError(result.error);
     }
+    
+    setLoading(false);
   };
 
   return (
-    <div className="flex justify-center items-center min-h-screen bg-gray-50">
-      <form onSubmit={handleSubmit} className="bg-white p-6 rounded shadow-md w-80">
-        <h2 className="text-2xl mb-4 text-center font-semibold">Login</h2>
-        {error && <p className="text-red-500 text-sm mb-2">{error}</p>}
-        <input
-          type="email"
-          placeholder="Email"
-          className="w-full p-2 border rounded mb-3"
-          value={email}
-          onChange={(e) => setEmail(e.target.value)}
-          required
-        />
-        <input
-          type="password"
-          placeholder="Password"
-          className="w-full p-2 border rounded mb-4"
-          value={password}
-          onChange={(e) => setPassword(e.target.value)}
-          required
-        />
-        <button className="w-full bg-blue-600 text-white py-2 rounded hover:bg-blue-700">Login</button>
-        <p className="mt-4 text-center">
-          Don't have an account?{" "}
-          <Link to="/register" className="text-blue-600 hover:underline">
-            Register
-          </Link>
-        </p>
-      </form>
+    <div className="min-h-screen flex items-center justify-center bg-gray-50 py-12 px-4 sm:px-6 lg:px-8">
+      <div className="max-w-md w-full space-y-8">
+        <div>
+          <h2 className="mt-6 text-center text-3xl font-extrabold text-gray-900">
+            Sign in to your account
+          </h2>
+          <p className="mt-2 text-center text-sm text-gray-600">
+            Or{' '}
+            <Link
+              to="/register"
+              className="font-medium text-primary-600 hover:text-primary-500"
+            >
+              create a new account
+            </Link>
+          </p>
+        </div>
+        
+        <form className="mt-8 space-y-6" onSubmit={handleSubmit}>
+          {error && (
+            <div className="bg-red-50 border border-red-200 text-red-700 px-4 py-3 rounded-md">
+              {error}
+            </div>
+          )}
+          
+          <div className="space-y-4">
+            <div>
+              <label htmlFor="email" className="block text-sm font-medium text-gray-700">
+                Email address
+              </label>
+              <input
+                id="email"
+                name="email"
+                type="email"
+                autoComplete="email"
+                required
+                value={formData.email}
+                onChange={handleChange}
+                className="input-field mt-1"
+                placeholder="Enter your email"
+              />
+            </div>
+            
+            <div>
+              <label htmlFor="password" className="block text-sm font-medium text-gray-700">
+                Password
+              </label>
+              <input
+                id="password"
+                name="password"
+                type="password"
+                autoComplete="current-password"
+                required
+                value={formData.password}
+                onChange={handleChange}
+                className="input-field mt-1"
+                placeholder="Enter your password"
+              />
+            </div>
+          </div>
+
+          <div>
+            <button
+              type="submit"
+              disabled={loading}
+              className="btn-primary w-full flex justify-center py-3"
+            >
+              {loading ? 'Signing in...' : 'Sign in'}
+            </button>
+          </div>
+        </form>
+      </div>
     </div>
   );
 }

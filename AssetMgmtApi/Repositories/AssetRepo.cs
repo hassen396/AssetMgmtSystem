@@ -17,8 +17,7 @@ namespace AssetMgmtApi.Repositories
 
         public async Task<bool> AssetExistAsync(Guid id)
         {
-            var asset = await _context.Assets.FindAsync(id);
-            return asset != null;
+            return await _context.Assets.AnyAsync(a => a.Id == id); ;
         }
 
         public async Task<Asset> CreatAssetAsync(Asset asset)
@@ -28,12 +27,12 @@ namespace AssetMgmtApi.Repositories
             return asset;
         }
 
-        public async Task DeleteAssetAsync(Guid id)
+        public async Task<Asset?> DeleteAssetAsync(Guid id)
         {
-             var asset = await _context.Assets.FindAsync(id);
-            if (asset == null) return NotFound();
-            _db.Assets.Remove(asset);
-            await _db.SaveChangesAsync();
+            var asset = await _context.Assets.FindAsync(id);
+            _context.Assets.Remove(asset!);
+            await _context.SaveChangesAsync();
+            return asset;
         }
 
         public async Task<List<Asset>?> GetAllAssetsAsync()
@@ -45,15 +44,26 @@ namespace AssetMgmtApi.Repositories
         {
             var asset = await _context.Assets.FindAsync(id);
             if (asset == null) return null;
-            return asset; 
+            return asset;
         }
 
-        public async Task<Asset?> UpdateAssetAsync(Asset newAsset)
+        public async Task<Asset?> UpdateAssetAsync(Asset newAsset, Guid id)
         {
-            _context.Update(newAsset);
-            await _context.SaveChangesAsync();
-            return newAsset;
+            var existingAsset = await _context.Assets.FirstOrDefaultAsync(a => a.Id == id);
+            if (existingAsset == null)
+            {
+                return null;
+            }
 
+            existingAsset.Name = newAsset.Name;
+            existingAsset.Category = newAsset.Category;
+            existingAsset.PurchaseDate = newAsset.PurchaseDate;
+            existingAsset.SerialNumber = newAsset.SerialNumber;
+            existingAsset.Status = newAsset.Status;
+            existingAsset.ImageUrl = newAsset.ImageUrl;
+
+            await _context.SaveChangesAsync();
+            return existingAsset;
         }
     }
 }

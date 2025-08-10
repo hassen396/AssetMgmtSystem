@@ -8,7 +8,7 @@ namespace AssetMgmtApi.DTOs
         public string Category { get; set; } = null!;
         public string SerialNumber { get; set; } = null!;
         public DateTime PurchaseDate { get; set; }
-        public AssetStatus Status { get; set; } = AssetStatus.Available;
-        public string? ImageUrl { get; set; }
+        public int Status { get; set; } = 0;
+        public IFormFile? Image { get; set; }
     }
 }
