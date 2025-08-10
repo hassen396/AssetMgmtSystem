@@ -9,6 +9,6 @@ namespace AssetMgmtApi.DTOs
         public string SerialNumber { get; set; } = null!;
         public DateTime PurchaseDate { get; set; }
         public int Status { get; set; } = 0;
-        public string? ImageUrl { get; set; }
+        public IFormFile? Image { get; set; }
     }
 }

@@ -31,7 +31,7 @@ namespace AssetMgmtApi.Mappers
                 SerialNumber = createUpdateDto.SerialNumber,
                 PurchaseDate = createUpdateDto.PurchaseDate,
                 Status = (AssetStatus)createUpdateDto.Status,
-                ImageUrl = createUpdateDto.ImageUrl
+                // ImageUrl = createUpdateDto.ImageUrl
             };
         }
         

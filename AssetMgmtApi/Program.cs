@@ -105,7 +105,7 @@ if (app.Environment.IsDevelopment())
 }
 
 app.UseHttpsRedirection();
-
+app.UseStaticFiles();
 app.UseCors("AllowLocal");
 app.UseAuthentication();
 app.UseAuthorization();

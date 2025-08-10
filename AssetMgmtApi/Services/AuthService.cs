@@ -26,20 +26,16 @@ namespace AssetMgmtApi.Services
         {
             var storedToken = await _authRepo.GetRefreshTokenAsync(refreshTokenString);
 
-            // Case 1: Token does not exist.
             if (storedToken == null)
             {
                 return new TokenRefreshResult { IsSuccess = false, ErrorMessage = "Invalid token." };
             }
 
-            // Case 2: Token has expired.
             if (storedToken.Expires <= DateTime.UtcNow)
             {
                 return new TokenRefreshResult { IsSuccess = false, ErrorMessage = "Token expired." };
             }
 
-            // Case 3 (SECURITY): Token has already been used/revoked.
-            // This indicates a potential token theft. Invalidate all of the user's tokens.
             if (storedToken.IsRevoked)
             {
                 await _authRepo.RevokeAllTokensForUserAsync(storedToken.UserId);
@@ -52,16 +48,13 @@ namespace AssetMgmtApi.Services
                 return new TokenRefreshResult { IsSuccess = false, ErrorMessage = "User not found." };
             }
 
-            // --- If all checks pass, proceed with token rotation ---
 
-            // 1. Revoke the OLD token. MUST be awaited to prevent race conditions.
             await _authRepo.RevokeTokenAsync(refreshTokenString);
 
-            // 2. Issue a NEW access token.
-            var accessTokenObject = GenerateAccessToken(user); // Your existing generation logic
+            var accessTokenObject = GenerateAccessToken(user); 
             var accessToken = new JwtSecurityTokenHandler().WriteToken(accessTokenObject);
 
-            // 3. Issue and store a NEW refresh token.
+            
             var newRefreshToken = await _authRepo.AddRefreshTokenAsync(user.Id);
 
             return new TokenRefreshResult
@@ -73,10 +66,10 @@ namespace AssetMgmtApi.Services
         }
 
 
-        //generate a access token
+        
         public JwtSecurityToken GenerateAccessToken(User user)
         {
-            var roles = _userManager.GetRolesAsync(user).Result; // TODO: make this method async
+            var roles = _userManager.GetRolesAsync(user).Result; 
 
             var claims = new List<Claim>
             {
@@ -95,7 +88,7 @@ namespace AssetMgmtApi.Services
                 issuer: _configuration["Jwt:Issuer"],
                 audience: _configuration["Jwt:Audience"],
                 claims: claims,
-                expires: DateTime.UtcNow.AddMinutes(150),
+                expires: DateTime.UtcNow.AddMinutes(15),
                 signingCredentials: creds
             );
             return accessToken;
