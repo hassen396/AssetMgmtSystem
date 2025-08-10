@@ -1,192 +1,104 @@
-import { useState } from 'react';
-import { Link, useNavigate } from 'react-router-dom';
+import { Fragment } from 'react';
+import { Menu, Transition } from '@headlessui/react';
+import { Bars3Icon, BellIcon, UserCircleIcon } from '@heroicons/react/24/outline';
 import { useAuth } from '../../contexts/AuthContext';
-import { 
-  Menu, 
-  X, 
-  User, 
-  LogOut, 
-  Settings, 
-  Building2, 
-  ClipboardList,
-  Plus
-} from 'lucide-react';
+import { useNavigate } from 'react-router-dom';
 
-const Navbar = () => {
-  const [isOpen, setIsOpen] = useState(false);
-  const [isUserMenuOpen, setIsUserMenuOpen] = useState(false);
-  const { user, isAdmin, logout } = useAuth();
+export default function Navbar({ onMenuClick }) {
+  const { user, logout } = useAuth();
   const navigate = useNavigate();
 
-  const handleLogout = async () => {
-    await logout();
+  const handleLogout = () => {
+    logout();
     navigate('/login');
   };
 
-  const navigation = [
-    { name: 'Dashboard', href: '/', current: true },
-    { name: 'Assets', href: '/assets', current: false },
-    ...(isAdmin ? [{ name: 'Requests', href: '/requests', current: false }] : []),
-  ];
-
   return (
-    <nav className="bg-white shadow-lg">
-      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-        <div className="flex justify-between h-16">
-          <div className="flex">
-            <div className="flex-shrink-0 flex items-center">
-              <Link to="/" className="text-xl font-bold text-blue-600">
-                Asset Management
-              </Link>
-            </div>
-            <div className="hidden sm:ml-6 sm:flex sm:space-x-8">
-              {navigation.map((item) => (
-                <Link
-                  key={item.name}
-                  to={item.href}
-                  className="text-gray-900 hover:text-blue-600 px-3 py-2 rounded-md text-sm font-medium transition-colors"
-                >
-                  {item.name}
-                </Link>
-              ))}
+    <nav className="bg-white shadow-sm border-b border-gray-200">
+      <div className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
+        <div className="flex h-16 justify-between">
+          <div className="flex items-center justify-center">
+            <button
+              type="button"
+              className="lg:hidden -m-2.5 p-2.5 text-gray-700"
+              onClick={onMenuClick}
+            >
+              <span className="sr-only">Open sidebar</span>
+              <Bars3Icon className="h-6 w-6" aria-hidden="true" />
+            </button>
+            
+            <div className="ml-4 lg:ml-0">
+              <h1 className="text-xl font-semibold text-gray-900">
+                Asset Management System
+              </h1>
             </div>
           </div>
-          
-          {user ? (
-            <div className="hidden sm:ml-6 sm:flex sm:items-center">
-              <div className="ml-3 relative">
-                <div>
-                  <button
-                    onClick={() => setIsUserMenuOpen(!isUserMenuOpen)}
-                    className="max-w-xs bg-white rounded-full flex items-center text-sm focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500"
-                  >
-                    <span className="sr-only">Open user menu</span>
-                    <div className="h-8 w-8 rounded-full bg-blue-600 flex items-center justify-center">
-                      <span className="text-white text-sm font-medium">
-                        {user.firstName?.charAt(0) || user.email?.charAt(0) || 'U'}
-                      </span>
-                    </div>
-                  </button>
-                </div>
-                
-                {isUserMenuOpen && (
-                  <div className="origin-top-right absolute right-0 mt-2 w-48 rounded-md shadow-lg py-1 bg-white ring-1 ring-black ring-opacity-5 focus:outline-none z-50">
-                    <div className="px-4 py-2 text-sm text-gray-700 border-b">
-                      <div className="font-medium">{user.firstName} {user.lastName}</div>
-                      <div className="text-gray-500">{user.email}</div>
-                    </div>
-                    <button
-                      onClick={handleLogout}
-                      className="block w-full text-left px-4 py-2 text-sm text-gray-700 hover:bg-gray-100 flex items-center"
-                    >
-                      <LogOut className="h-4 w-4 mr-2" />
-                      Sign out
-                    </button>
-                  </div>
-                )}
-              </div>
-            </div>
-          ) : (
-            <div className="hidden sm:ml-6 sm:flex sm:items-center space-x-4">
-              <Link
-                to="/login"
-                className="text-gray-900 hover:text-blue-600 px-3 py-2 rounded-md text-sm font-medium"
-              >
-                Sign in
-              </Link>
-              <Link
-                to="/register"
-                className="bg-blue-600 hover:bg-blue-700 text-white px-4 py-2 rounded-md text-sm font-medium"
-              >
-                Sign up
-              </Link>
-            </div>
-          )}
 
-          <div className="-mr-2 flex items-center sm:hidden">
+          <div className="flex items-center gap-4">
             <button
-              onClick={() => setIsOpen(!isOpen)}
-              className="inline-flex items-center justify-center p-2 rounded-md text-gray-400 hover:text-gray-500 hover:bg-gray-100 focus:outline-none focus:ring-2 focus:ring-inset focus:ring-blue-500"
+              type="button"
+              className="relative p-2 text-gray-400 hover:text-gray-500"
             >
-              <span className="sr-only">Open main menu</span>
-              {isOpen ? (
-                <X className="block h-6 w-6" />
-              ) : (
-                <Menu className="block h-6 w-6" />
-              )}
+              <BellIcon className="h-6 w-6" aria-hidden="true" />
             </button>
+
+            <Menu as="div" className="relative ml-3">
+              <Menu.Button className="flex rounded-full bg-white text-sm focus:outline-none focus:ring-2 focus:ring-primary-500">
+                <UserCircleIcon className="h-8 w-8 text-gray-400" aria-hidden="true" />
+              </Menu.Button>
+              <Transition
+                as={Fragment}
+                enter="transition ease-out duration-100"
+                enterFrom="transform opacity-0 scale-95"
+                enterTo="transform opacity-100 scale-100"
+                leave="transition ease-in duration-75"
+                leaveFrom="transform opacity-100 scale-100"
+                leaveTo="transform opacity-0 scale-95"
+              >
+                <Menu.Items className="absolute right-0 z-10 mt-2 w-48 origin-top-right rounded-md bg-white py-1 shadow-lg ring-1 ring-black ring-opacity-5 focus:outline-none">
+                  <Menu.Item>
+                    {({ active }) => (
+                      <div className="px-4 py-2 text-sm text-gray-700 border-b border-gray-100">
+                        <p className="font-medium">{user?.firstName && user?.lastName ? `${user.firstName} ${user.lastName}` : 'User'}</p>
+                        <p className="text-gray-500">{user?.email}</p>
+                        <p className="text-xs text-primary-600 font-medium">{user?.role}</p>
+                      </div>
+                    )}
+                  </Menu.Item>
+                  
+                  {user?.role === 'Admin' && (
+                    <Menu.Item>
+                      {({ active }) => (
+                        <button
+                          onClick={() => navigate('/admin')}
+                          className={`${
+                            active ? 'bg-gray-100' : ''
+                          } block w-full px-4 py-2 text-left text-sm text-gray-700`}
+                        >
+                          Admin Panel
+                        </button>
+                      )}
+                    </Menu.Item>
+                  )}
+                  
+                  <Menu.Item>
+                    {({ active }) => (
+                      <button
+                        onClick={handleLogout}
+                        className={`${
+                          active ? 'bg-gray-100' : ''
+                        } block w-full px-4 py-2 text-left text-sm text-gray-700`}
+                      >
+                        Sign out
+                      </button>
+                    )}
+                  </Menu.Item>
+                </Menu.Items>
+              </Transition>
+            </Menu>
           </div>
         </div>
       </div>
-
-      {/* Mobile menu */}
-      {isOpen && (
-        <div className="sm:hidden">
-          <div className="pt-2 pb-3 space-y-1">
-            {navigation.map((item) => (
-              <Link
-                key={item.name}
-                to={item.href}
-                className="text-gray-900 hover:text-blue-600 block px-3 py-2 rounded-md text-base font-medium"
-                onClick={() => setIsOpen(false)}
-              >
-                {item.name}
-              </Link>
-            ))}
-          </div>
-          {user ? (
-            <div className="pt-4 pb-3 border-t border-gray-200">
-              <div className="flex items-center px-4">
-                <div className="flex-shrink-0">
-                  <div className="h-10 w-10 rounded-full bg-blue-600 flex items-center justify-center">
-                    <span className="text-white text-sm font-medium">
-                      {user.firstName?.charAt(0) || user.email?.charAt(0) || 'U'}
-                    </span>
-                  </div>
-                </div>
-                <div className="ml-3">
-                  <div className="text-base font-medium text-gray-800">
-                    {user.firstName} {user.lastName}
-                  </div>
-                  <div className="text-sm font-medium text-gray-500">
-                    {user.email}
-                  </div>
-                </div>
-              </div>
-              <div className="mt-3 space-y-1">
-                <button
-                  onClick={handleLogout}
-                  className="block w-full text-left px-4 py-2 text-base font-medium text-gray-500 hover:text-gray-800 hover:bg-gray-100 flex items-center"
-                >
-                  <LogOut className="h-4 w-4 mr-2" />
-                  Sign out
-                </button>
-              </div>
-            </div>
-          ) : (
-            <div className="pt-4 pb-3 border-t border-gray-200">
-              <div className="space-y-1">
-                <Link
-                  to="/login"
-                  className="block px-4 py-2 text-base font-medium text-gray-500 hover:text-gray-800 hover:bg-gray-100"
-                  onClick={() => setIsOpen(false)}
-                >
-                  Sign in
-                </Link>
-                <Link
-                  to="/register"
-                  className="block px-4 py-2 text-base font-medium text-gray-500 hover:text-gray-800 hover:bg-gray-100"
-                  onClick={() => setIsOpen(false)}
-                >
-                  Sign up
-                </Link>
-              </div>
-            </div>
-          )}
-        </div>
-      )}
     </nav>
   );
-};
-
-export default Navbar; 
+}
