@@ -1,17 +1,19 @@
 import axios from 'axios';
+import { config } from '../config';
 
-const API_BASE_URL = 'https://localhost:5051/api';
+const baseURL = config.api.baseURL;
 
-// Create axios instance
-const api = axios.create({
-  baseURL: API_BASE_URL,
-  withCredentials: true, // Important for cookies
+export const api = axios.create({
+  baseURL,
+  headers: {
+    'Content-Type': 'application/json',
+  },
 });
 
 // Request interceptor to add auth token
 api.interceptors.request.use(
   (config) => {
-    const token = localStorage.getItem('accessToken');
+    const token = localStorage.getItem('token');
     if (token) {
       config.headers.Authorization = `Bearer ${token}`;
     }
@@ -32,18 +34,17 @@ api.interceptors.response.use(
       originalRequest._retry = true;
 
       try {
-        const response = await api.post('/auth/refresh-token');
-        const { accessToken } = response.data;
-        localStorage.setItem('accessToken', accessToken);
+        const response = await axios.post(`${baseURL}/auth/refresh-token`);
         
-        // Retry the original request
+        const { accessToken } = response.data;
+        localStorage.setItem('token', accessToken);
+        
         originalRequest.headers.Authorization = `Bearer ${accessToken}`;
         return api(originalRequest);
       } catch (refreshError) {
-        // Refresh token failed, redirect to login
-        localStorage.removeItem('accessToken');
+        localStorage.removeItem('token');
+        localStorage.removeItem('refreshToken');
         window.location.href = '/login';
-        return Promise.reject(refreshError);
       }
     }
 
@@ -51,4 +52,30 @@ api.interceptors.response.use(
   }
 );
 
-export default api; 
+// Asset API calls
+export const assetAPI = {
+  getAll: () => api.get('/assets'),
+  getAvailable: () => api.get('/assets/available'),
+  getById: (id) => api.get(`/assets/${id}`),
+  create: (data) => api.post('/assets', data),
+  update: (id, data) => api.put(`/assets/${id}`, data),
+  delete: (id) => api.delete(`/assets/${id}`),
+};
+
+// Asset Request API calls
+export const requestAPI = {
+  getAll: () => api.get('/requests'),
+  getMyRequests: () => api.get('/requests/my-requests'),
+  getById: (id) => api.get(`/requests/${id}`),
+  create: (data) => api.post('/requests', data),
+  approve: (id) => api.post(`/requests/${id}/approve`),
+  reject: (id) => api.post(`/requests/${id}/reject`),
+};
+
+// Auth API calls
+export const authAPI = {
+  login: (credentials) => api.post('/auth/login', credentials),
+  register: (userData) => api.post('/auth/register', userData),
+  me: () => api.get('/auth/profile'),
+  refresh: (refreshToken) => api.post('/auth/refresh-token'),
+};

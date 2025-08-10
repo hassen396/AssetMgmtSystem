@@ -1,5 +1,5 @@
 import { createContext, useContext, useState, useEffect } from 'react';
-import api from '../services/api';
+import { api } from '../services/api';
 
 const AuthContext = createContext();
 
@@ -14,71 +14,39 @@ export const useAuth = () => {
 export const AuthProvider = ({ children }) => {
   const [user, setUser] = useState(null);
   const [loading, setLoading] = useState(true);
-  const [isAdmin, setIsAdmin] = useState(false);
+  const [token, setToken] = useState(localStorage.getItem('token'));
 
   useEffect(() => {
-    checkAuth();
-  }, []);
-
-  const checkAuth = async () => {
-    const accessToken = localStorage.getItem('accessToken');
-    const refreshToken = localStorage.getItem('refreshToken');
-    
-    if (accessToken) {
-      try {
-        // Try to get user profile with current access token
-        const response = await api.get('/auth/profile');
-        setUser(response.data);
-        setIsAdmin(response.data.role === 'Admin');
-        setLoading(false);
-        return;
-      } catch (error) {
-        // Access token expired, try refresh token
-        if (refreshToken) {
-          try {
-            const refreshResponse = await api.post('/auth/refresh-token', {
-              refreshToken: refreshToken
-            });
-            
-            const { accessToken: newAccessToken } = refreshResponse.data;
-            localStorage.setItem('accessToken', newAccessToken);
-            
-            // Get user profile with new token
-            const profileResponse = await api.get('/auth/profile');
-            setUser(profileResponse.data);
-            setIsAdmin(profileResponse.data.role === 'Admin');
-            setLoading(false);
-            return;
-          } catch (refreshError) {
-            // Refresh token failed, clear all tokens
-            localStorage.removeItem('accessToken');
-            localStorage.removeItem('refreshToken');
-          }
-        } else {
-          localStorage.removeItem('accessToken');
-        }
-      }
+    if (token) {
+      checkAuthStatus();
+    } else {
+      setLoading(false);
     }
-    
-    setUser(null);
-    setIsAdmin(false);
-    setLoading(false);
+  }, [token]);
+
+  const checkAuthStatus = async () => {
+    try {
+      const response = await api.get('/auth/profile');
+      setUser(response.data);
+    } catch (error) {
+      console.error('Auth check failed:', error);
+      logout();
+    } finally {
+      setLoading(false);
+    }
   };
 
   const login = async (email, password) => {
     try {
       const response = await api.post('/auth/login', { email, password });
-      const { accessToken, refreshToken } = response.data;
+      const { accessToken } = response.data;
       
-      localStorage.setItem('accessToken', accessToken);
-      if (refreshToken) {
-        localStorage.setItem('refreshToken', refreshToken);
-      }
+      setToken(accessToken);
+      localStorage.setItem('token', accessToken);
       
-      // Get user profile
+      // Get user profile after successful login
       const profileResponse = await api.get('/auth/profile');
       setUser(profileResponse.data);
-      setIsAdmin(profileResponse.data.role === 'Admin');
       
       return { success: true };
     } catch (error) {
@@ -91,8 +59,8 @@ export const AuthProvider = ({ children }) => {
 
   const register = async (userData) => {
     try {
-      await api.post('/auth/register', userData);
-      return { success: true };
+      const response = await api.post('/auth/register', userData);
+      return { success: true, data: response.data };
     } catch (error) {
       return { 
         success: false, 
@@ -107,21 +75,25 @@ export const AuthProvider = ({ children }) => {
     } catch (error) {
       console.error('Logout error:', error);
     } finally {
-      localStorage.removeItem('accessToken');
-      localStorage.removeItem('refreshToken');
       setUser(null);
-      setIsAdmin(false);
+      setToken(null);
+      localStorage.removeItem('token');
+      localStorage.removeItem('refreshToken');
     }
+  };
+
+  const isAdmin = () => {
+    return user?.role === 'Admin';
   };
 
   const value = {
     user,
+    token,
     loading,
-    isAdmin,
     login,
     register,
     logout,
-    checkAuth
+    isAdmin,
   };
 
   return (
@@ -129,4 +101,4 @@ export const AuthProvider = ({ children }) => {
       {children}
     </AuthContext.Provider>
   );
-}; 
+};

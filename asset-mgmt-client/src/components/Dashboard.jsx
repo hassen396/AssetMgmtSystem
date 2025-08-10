@@ -1,12 +1,18 @@
 import { Link } from 'react-router-dom';
+import { useAuth } from '../contexts/AuthContext'; // import useAuth
 
 export default function Dashboard() {
+  const { user } = useAuth(); // get user from auth context
+
   return (
     <div className="space-y-6">
-      <div>
+      <div className="ml-32">
         <h1 className="text-2xl font-bold text-gray-900">Dashboard</h1>
-        <p className="text-gray-600 mt-2">Welcome to your Asset Management Dashboard</p>
+        <p className="text-gray-600 mt-2">
+          Welcome to your Asset Management Dashboard
+        </p>
       </div>
+
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
         <div className="card">
           <div className="text-center">
@@ -14,14 +20,19 @@ export default function Dashboard() {
               <span className="text-primary-600 text-2xl">📦</span>
             </div>
             <h3 className="text-lg font-medium text-gray-900">Assets</h3>
-            <p className="text-gray-600 mt-2">Manage your assets</p>
+            
+            {/* Hide for role === "user" */}
+            {user?.role !== 'user' && (
+              <p className="text-gray-600 mt-2">Manage your assets</p>
+            )}
+
             <Link to="/assets" className="btn-primary mt-4 w-full">
               View Assets
             </Link>
           </div>
         </div>
 
-        <div className="card">
+        <div className="text-center card">
           <div className="text-center">
             <div className="w-16 h-16 bg-yellow-100 rounded-full flex items-center justify-center mx-auto mb-4">
               <span className="text-yellow-600 text-2xl">📋</span>

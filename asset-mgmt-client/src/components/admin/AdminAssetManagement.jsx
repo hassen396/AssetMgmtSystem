@@ -2,7 +2,7 @@ import { useState, useEffect } from 'react';
 import { Link } from 'react-router-dom';
 import { assetAPI } from '../../services/api';
 
-export default function Assets() {
+export default function AdminAssetManagement() {
   const [assets, setAssets] = useState([]);
   const [loading, setLoading] = useState(true);
 
@@ -21,6 +21,17 @@ export default function Assets() {
     }
   };
 
+  const handleDelete = async (id) => {
+    if (window.confirm('Are you sure you want to delete this asset?')) {
+      try {
+        await assetAPI.delete(id);
+        fetchAssets();
+      } catch (error) {
+        console.error('Error deleting asset:', error);
+      }
+    }
+  };
+
   if (loading) {
     return (
       <div className="flex items-center justify-center h-64">
@@ -32,9 +43,9 @@ export default function Assets() {
   return (
     <div className="space-y-6">
       <div className="flex justify-between items-center">
-        <h1 className="text-2xl font-bold text-gray-900">Assets</h1>
+        <h1 className="text-2xl font-bold text-gray-900">Asset Management</h1>
         <Link to="/assets/new" className="btn-primary">
-          Add Asset
+          Add New Asset
         </Link>
       </div>
 
@@ -80,6 +91,12 @@ export default function Assets() {
                     >
                       Edit
                     </Link>
+                    <button
+                      onClick={() => handleDelete(asset.id)}
+                      className="text-red-600 hover:text-red-900"
+                    >
+                      Delete
+                    </button>
                   </td>
                 </tr>
               ))}

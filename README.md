@@ -1,8 +1,42 @@
-# Asset Management System - Frontend
+# Asset Management System
+
+A full-stack Asset Management System with a modern React frontend and a .NET backend API.
+
+---
+
+## Table of Contents
+
+- [Frontend (React)](#frontend-react)
+- [Backend API (ASP.NET Core)](#backend-api-aspnet-core)
+- [Project Structure](#project-structure)
+- [API Integration](#api-integration)
+- [Features in Detail](#features-in-detail)
+- [Styling](#styling)
+- [Development](#development)
+- [Deployment](#deployment)
+- [Browser Support](#browser-support)
+- [Contributing](#contributing)
+- [License](#license)
+
+---
+
+The following demo users are automatically created when you run the backend for the first time:
+
+| Role  | Email                | Password   |
+|-------|----------------------|------------|
+| Admin | <admin@company.test>   | Admin123!  |
+| User  | <user@company.test>    | User123!   |
+
+> **Note:** These credentials are for demo/development purposes only.  
+> For production, change the default passwords and emails in the seeder or disable demo user creation.
+
+---
+
+## Frontend (React)
 
 A modern React frontend for the Asset Management System built with Vite, Tailwind CSS, and React Router.
 
-## Features
+### Features
 
 - **Authentication System**: Login, register, and logout functionality
 - **Role-based Access Control**: Admin and User roles with different permissions
@@ -11,40 +45,41 @@ A modern React frontend for the Asset Management System built with Vite, Tailwin
 - **Responsive Design**: Mobile-friendly interface
 - **Modern UI**: Clean and intuitive design with Tailwind CSS
 
-## Tech Stack
+### Tech Stack
 
-- **React 19**: Latest version with hooks and modern patterns
-- **Vite**: Fast build tool and development server
-- **Tailwind CSS**: Utility-first CSS framework
-- **React Router**: Client-side routing
-- **Axios**: HTTP client for API calls
-- **Lucide React**: Beautiful icons
-- **Headless UI**: Accessible UI components
+- **React 19**
+- **Vite**
+- **Tailwind CSS**
+- **React Router**
+- **Axios**
+- **Lucide React**
+- **Headless UI**
 
-## Getting Started
+### Getting Started (Frontend)
 
-### Prerequisites
+#### Prerequisites
 
 - Node.js (v16 or higher)
 - npm or yarn
-- Backend API running on `http://localhost:5000` or `https://localhost:5051/api` 
+- Backend API running (see below)
 
-
-### Installation
+#### Installation
 
 1. Install dependencies:
-```bash
-npm install
-```
+
+    ```bash
+    npm install
+    ```
 
 2. Start the development server:
-```bash
-npm run dev
-```
+
+    ```bash
+    npm run dev
+    ```
 
 3. Open your browser and navigate to `http://localhost:5173`
 
-### Building for Production
+#### Building for Production
 
 ```bash
 npm run build
@@ -52,7 +87,110 @@ npm run build
 
 The built files will be in the `dist` directory.
 
+---
+
+## Backend API (ASP.NET Core)
+
+The backend is built with ASP.NET Core and Entity Framework Core, providing authentication, asset, and request management APIs.
+
+### Prerequisites
+
+- [.NET 8+ SDK](https://dotnet.microsoft.com/download)
+- PostgreSQL (or SQLite, depending on your configuration)
+- (Optional) [EF Core CLI tools](https://learn.microsoft.com/en-us/ef/core/cli/dotnet)
+
+### Getting Started (Backend)
+
+1. **Navigate to the API directory:**
+
+    ```bash
+    cd AssetMgmtApi
+    ```
+
+2. **Restore dependencies:**
+
+    ```bash
+    dotnet restore
+    ```
+
+3. **Configure your database connection:**
+    - Open `appsettings.json` or `appsettings.Development.json` in the `AssetMgmtApi` directory.
+    - Update the `ConnectionStrings:DefaultConnection` section with your PostgreSQL username, password, host, and database name.  
+      **Example:**
+
+      ```json
+      "ConnectionStrings": {
+        "DefaultConnection": "Host=localhost;Port=5432;Database=assetmgmtdb;Username=your_username;Password=your_password"
+      }
+      ```
+
+    - **Make sure to change the `Username` and `Password` to match your PostgreSQL setup.**
+
+4. **Apply database migrations:**
+
+    ```bash
+    dotnet ef database update
+    ```
+
+    > If you don't have the EF CLI installed, run:  
+    > `dotnet tool install --global dotnet-ef`
+
+5. **Run the API:**
+
+    ```bash
+    dotnet run
+    ```
+
+6. **API will be available at:**
+    - `https://localhost:5051` or
+    - `http://localhost:5050`
+
+### Useful Backend Commands
+
+- **Create a new migration:**
+
+    ```bash
+    dotnet ef migrations add <MigrationName>
+    ```
+
+- **Update the database:**
+
+    ```bash
+    dotnet ef database update
+    ```
+
+- **Run the API:**
+
+    ```bash
+    dotnet run
+    ```
+
+### Configuration
+
+- Edit `appsettings.Development.json` for database connection strings and other settings.
+- Default connection string uses PostgreSQL; update as needed for your environment.
+- **Remember to set your own PostgreSQL username and password in `appsettings.json` before running the application.**
+
+---
+
+## Demo Credentials
+
 ## Project Structure
+
+```
+AssetMgmtSystem/
+├── AssetMgmtApi/         # ASP.NET Core backend API
+│   ├── Controllers/
+│   ├── Data/
+│   ├── Models/
+│   └── ...
+├── frontend/             # React frontend (see below)
+│   └── src/
+│       └── ...
+└── README.md
+```
+
+### Frontend Structure
 
 ```
 src/
@@ -77,11 +215,13 @@ src/
 └── main.jsx
 ```
 
+---
+
 ## API Integration
 
 The frontend communicates with the backend API through the `api.js` service:
 
-- **Base URL**: `http://localhost:5050/api`
+- **Base URL**: `http://localhost:5050/api` (update as needed)
 - **Authentication**: JWT tokens with automatic refresh
 - **Error Handling**: Centralized error handling with user-friendly messages
 
@@ -98,6 +238,8 @@ The frontend communicates with the backend API through the `api.js` service:
 - `GET /requests` - Get all requests (Admin only)
 - `POST /requests/:id/approve` - Approve request (Admin only)
 - `POST /requests/:id/reject` - Reject request (Admin only)
+
+---
 
 ## Features in Detail
 
@@ -125,6 +267,8 @@ The frontend communicates with the backend API through the `api.js` service:
 - Quick action buttons
 - Recent activity display
 
+---
+
 ## Styling
 
 The application uses Tailwind CSS for styling with:
@@ -133,9 +277,11 @@ The application uses Tailwind CSS for styling with:
 - Modern UI components
 - Accessibility features
 
+---
+
 ## Development
 
-### Available Scripts
+### Available Scripts (Frontend)
 
 - `npm run dev` - Start development server
 - `npm run build` - Build for production
@@ -149,13 +295,22 @@ The application uses Tailwind CSS for styling with:
 - Proper error handling
 - TypeScript-like prop validation
 
+---
+
 ## Deployment
 
-The application can be deployed to any static hosting service:
+### Frontend
 
 1. Build the application: `npm run build`
 2. Upload the `dist` folder to your hosting service
 3. Configure your hosting service to serve the `index.html` file for all routes
+
+### Backend
+
+- Deploy the ASP.NET Core API to your preferred cloud provider or server.
+- Update frontend API URLs as needed.
+
+---
 
 ## Browser Support
 
@@ -164,6 +319,8 @@ The application can be deployed to any static hosting service:
 - Safari (latest)
 - Edge (latest)
 
+---
+
 ## Contributing
 
 1. Fork the repository
@@ -171,6 +328,8 @@ The application can be deployed to any static hosting service:
 3. Make your changes
 4. Test thoroughly
 5. Submit a pull request
+
+---
 
 ## License
 
