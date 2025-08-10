@@ -27,8 +27,7 @@ A modern React frontend for the Asset Management System built with Vite, Tailwin
 
 - Node.js (v16 or higher)
 - npm or yarn
-- Backend API running on `http://localhost:5000` or `https://localhost:5051/api` 
-
+- Backend API running on `http://localhost:5000`
 
 ### Installation
 
@@ -81,7 +80,7 @@ src/
 
 The frontend communicates with the backend API through the `api.js` service:
 
-- **Base URL**: `http://localhost:5050/api`
+- **Base URL**: `http://localhost:5000/api`
 - **Authentication**: JWT tokens with automatic refresh
 - **Error Handling**: Centralized error handling with user-friendly messages
 

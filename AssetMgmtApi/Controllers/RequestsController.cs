@@ -37,6 +37,41 @@ namespace AssetMgmtApi.Controllers
             return Ok(assetrRequestsDto);
         }
 
+        [HttpGet("my-requests")]
+        [Authorize]
+        public async Task<IActionResult> GetMyRequests()
+        {
+            var userId = User.FindFirstValue(ClaimTypes.NameIdentifier) ?? User.FindFirstValue(JwtRegisteredClaimNames.Sub);
+            if (userId == null) return Unauthorized();
+
+            var myRequests = await _context.AssetRequests
+                .Where(r => r.UserId == Guid.Parse(userId))
+                .Include(r => r.Asset)
+                .OrderByDescending(r => r.RequestDate)
+                .ToListAsync();
+
+            var requestsDto = myRequests.Select(AssetRequestExportMapper.MapToDto).ToList();
+            return Ok(requestsDto);
+        }
+
+        [HttpGet("by-status/{status}")]
+        [Authorize(Roles = "Admin")]
+        public async Task<IActionResult> GetByStatus(int status)
+        {
+            if (!Enum.IsDefined(typeof(RequestStatus), status))
+                return BadRequest("Invalid status value");
+
+            var requests = await _context.AssetRequests
+                .Where(r => (int)r.Status == status)
+                .Include(r => r.Asset)
+                .Include(r => r.User)
+                .OrderByDescending(r => r.RequestDate)
+                .ToListAsync();
+
+            var requestsDto = requests.Select(AssetRequestExportMapper.MapToDto).ToList();
+            return Ok(requestsDto);
+        }
+
         [HttpPost]
         [Authorize]
         public async Task<IActionResult> Create([FromBody] CreateRequestDto dto)
@@ -56,7 +91,7 @@ namespace AssetMgmtApi.Controllers
         [Authorize(Roles = "Admin")]
         public async Task<IActionResult> Approve(Guid id)
         {
-            var req = await _context.AssetRequests.Include(r => r.Asset).FirstOrDefaultAsync(r => r.Id == id);
+            var req = await _requestRepo.GetAssetRequestAsync(id);
             if (req == null) return NotFound();
             if (req.Status != RequestStatus.Pending) return BadRequest("Already processed");
 

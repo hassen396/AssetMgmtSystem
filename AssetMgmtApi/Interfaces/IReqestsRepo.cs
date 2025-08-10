@@ -7,5 +7,6 @@ namespace AssetMgmtApi.Interfaces
     {
         Task<List<AssetRequest>?> GetAllAsync();
         Task<AssetRequest?> CreateAsync(CreateRequestDto dto, Guid userId);
+        Task<AssetRequest?> GetAssetRequestAsync(Guid id);
     }
 }

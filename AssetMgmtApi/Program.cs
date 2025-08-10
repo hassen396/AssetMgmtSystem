@@ -6,7 +6,6 @@ using AssetMgmtApi.Interfaces;
 using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.EntityFrameworkCore;
-using Microsoft.Extensions.Options;
 using Microsoft.IdentityModel.Tokens;
 using AssetMgmtApi.Services;
 
@@ -29,6 +28,7 @@ builder.Services.AddIdentity<User, IdentityRole<Guid>>(options =>
 {
     options.Password.RequireDigit = false;
     options.Password.RequireUppercase = false;
+    options.Password.RequireLowercase = false;
     options.Password.RequiredUniqueChars = 0;
     options.Password.RequiredLength = 4;
     options.Password.RequireNonAlphanumeric = false;
@@ -88,8 +88,13 @@ builder.Services.AddSwaggerGen(options =>
 
 builder.Services.AddCors(options =>
 {
-    options.AddPolicy("AllowLocal", p => p.AllowAnyHeader().AllowAnyMethod().WithOrigins("http://localhost:5173"));
+    options.AddPolicy("AllowLocal", p => p
+        .AllowAnyHeader()
+        .AllowAnyMethod()
+        .AllowCredentials()
+        .WithOrigins("http://localhost:5173"));
 });
+
 var app = builder.Build();
 
 // Configure the HTTP request pipeline.
@@ -100,10 +105,11 @@ if (app.Environment.IsDevelopment())
 }
 
 app.UseHttpsRedirection();
+
+app.UseCors("AllowLocal");
 app.UseAuthentication();
 app.UseAuthorization();
 app.MapControllers();
-app.UseCors("AllowLocal");
 
 using (var scope = app.Services.CreateScope())
 {

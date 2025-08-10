@@ -27,12 +27,25 @@ namespace AssetMgmtApi.Controllers
             return Ok(assetsDto);
         }
 
+        [HttpGet("available")]
+        [Authorize]
+        public async Task<IActionResult> GetAvailableAssets()
+        {
+            var assets = await _assetRepo.GetAllAssetsAsync();
+            if (assets == null)
+                return NotFound("No asset is available");
+            
+            var availableAssets = assets.Where(a => a.Status == AssetMgmtApi.Models.AssetStatus.Available);
+            var assetsDto = availableAssets.Select(AssetExportMapper.MapToDto).ToList();
+            return Ok(assetsDto);
+        }
+
         [HttpGet("{id}")]
         [Authorize]
         public async Task<IActionResult> Get(Guid id)
         {
             var asset = await _assetRepo.GetAssetByIdAsync(id);
-            //map the dommai asset to a respective dto
+            //map the domain asset to a respective dto
             if (asset == null) return NotFound("no asset was found with the specified id");
             var assetDto = AssetExportMapper.MapToDto(asset);
             return Ok(assetDto);
@@ -73,12 +86,12 @@ namespace AssetMgmtApi.Controllers
 
         [HttpDelete("{id}")]
         [Authorize(Roles = "Admin")]
-        public async Task<IActionResult> Delete(Guid id)
+        public async Task<IActionResult> Delete([FromRoute] Guid id)
         {
             var assetExists = await _assetRepo.AssetExistAsync(id);
             if (!assetExists) return NotFound(new { Message = "Asset not not exist!" });
             await _assetRepo.DeleteAssetAsync(id);
-            return NotFound(new { Message = "Deleted Succussfully" });
+            return Ok(new { Message = "Deleted Succussfully" });
         }
     }
 }

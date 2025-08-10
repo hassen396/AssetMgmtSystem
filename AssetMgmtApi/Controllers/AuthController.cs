@@ -33,7 +33,6 @@ namespace AssetMgmtApi.Controllers
         }
 
 
-        //register new user
         [HttpPost("register")]
         public async Task<IActionResult> Register([FromBody] RegisterDto registerDto)
         {
@@ -67,7 +66,6 @@ namespace AssetMgmtApi.Controllers
         }
 
 
-        //login
         [HttpPost("login")]
         public async Task<IActionResult> Login([FromBody] LoginDto loginDto)
         {
@@ -80,7 +78,6 @@ namespace AssetMgmtApi.Controllers
             var accessToken = _authService.GenerateAccessToken(user);
             var refreshToken = await CreateAndStoreRefreshToken(user.Id);
 
-            // Set the refresh token in a secure, HttpOnly cookie
             SetRefreshTokenCookie(refreshToken);
 
             return Ok(new { accessToken = new JwtSecurityTokenHandler().WriteToken(accessToken) });
@@ -89,7 +86,6 @@ namespace AssetMgmtApi.Controllers
 
         private async Task<RefreshToken> CreateAndStoreRefreshToken(Guid userId)
         {
-            // Delete expired refresh tokens for this user
             await _authRepo.GetExpiredRefreshTokensAsync(userId);
 
             var refreshToken = await _authRepo.AddRefreshTokenAsync(userId);
@@ -98,7 +94,6 @@ namespace AssetMgmtApi.Controllers
         }
 
 
-        // Helper method to set the cookie
         private void SetRefreshTokenCookie(RefreshToken refreshToken)
         {
             var cookieOptions = new CookieOptions
@@ -151,7 +146,6 @@ namespace AssetMgmtApi.Controllers
 
             if (!result.IsSuccess)
             {
-                // The service provides the reason, so the controller doesn't need to know why.
                 return Unauthorized(new { message = result.ErrorMessage });
             }
             SetRefreshTokenCookie(result.NewRefreshToken!);

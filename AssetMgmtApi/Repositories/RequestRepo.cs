@@ -33,5 +33,10 @@ namespace AssetMgmtApi.Repositories
         {
             return await _context.AssetRequests.Include(r => r.Asset).ToListAsync();
         }
+
+        public async Task<AssetRequest?> GetAssetRequestAsync(Guid id)
+        {
+            return await _context.AssetRequests.Include(r => r.Asset).FirstOrDefaultAsync(r => r.Id == id);
+        }
     }
 }

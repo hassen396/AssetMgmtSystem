@@ -11,7 +11,7 @@ namespace AssetMgmtApi.Models
         public string SerialNumber { get; set; } = null!;
         public DateTime PurchaseDate { get; set; }
         public AssetStatus Status { get; set; } = AssetStatus.Available;
-        public string? ImageUrl { get; set; } // optional
+        public string? ImageUrl { get; set; }
     }
 
     public enum AssetStatus
