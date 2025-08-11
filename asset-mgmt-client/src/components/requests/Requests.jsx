@@ -1,6 +1,6 @@
-import { useState, useEffect } from 'react';
-import { Link } from 'react-router-dom';
-import { requestAPI, assetAPI } from '../../services/api';
+import { useState, useEffect } from "react";
+import { Link } from "react-router-dom";
+import { requestAPI, assetAPI } from "../../services/api";
 
 export default function Requests() {
   const [requests, setRequests] = useState([]);
@@ -8,24 +8,35 @@ export default function Requests() {
   const [loading, setLoading] = useState(true);
   const [showCreateForm, setShowCreateForm] = useState(false);
   const [formData, setFormData] = useState({
-    assetId: '',
-    reason: '',
+    assetId: "",
+    reason: "",
   });
 
   useEffect(() => {
     fetchData();
   }, []);
-
+  const getRequestStatusText = (status) => {
+    switch (status) {
+      case 0:
+        return "Pending";
+      case 1:
+        return "Approved";
+      case 2:
+        return "Rejected";
+      default:
+        return "Unknown";
+    }
+  };
   const fetchData = async () => {
     try {
       const [requestsResponse, assetsResponse] = await Promise.all([
         requestAPI.getMyRequests(),
-        assetAPI.getAvailable()
+        assetAPI.getAvailable(),
       ]);
       setRequests(requestsResponse.data);
       setAvailableAssets(assetsResponse.data);
     } catch (error) {
-      console.error('Error fetching data:', error);
+      console.error("Error fetching data:", error);
     } finally {
       setLoading(false);
     }
@@ -36,10 +47,10 @@ export default function Requests() {
     try {
       await requestAPI.create(formData);
       setShowCreateForm(false);
-      setFormData({ assetId: '', reason: '' });
+      setFormData({ assetId: "", reason: "" });
       fetchData();
     } catch (error) {
-      console.error('Error creating request:', error);
+      console.error("Error creating request:", error);
     }
   };
 
@@ -52,16 +63,17 @@ export default function Requests() {
 
   const getStatusColor = (status) => {
     switch (status) {
-      case 'Pending':
-        return 'bg-yellow-100 text-yellow-800';
-      case 'Approved':
-        return 'bg-green-100 text-green-800';
-      case 'Rejected':
-        return 'bg-red-100 text-red-800';
+      case 0:
+        return "bg-yellow-100 text-yellow-800";
+      case 1:
+        return "bg-green-100 text-green-800";
+      case 2:
+        return "bg-red-100 text-red-800";
       default:
-        return 'bg-gray-100 text-gray-800';
+        return "bg-gray-100 text-gray-800";
     }
   };
+
 
   if (loading) {
     return (
@@ -75,20 +87,25 @@ export default function Requests() {
     <div className="space-y-6">
       <div className="flex justify-between items-center">
         <h1 className="text-2xl font-bold text-gray-900">Asset Requests</h1>
-        <button 
+        <button
           onClick={() => setShowCreateForm(!showCreateForm)}
           className="btn-primary"
         >
-          {showCreateForm ? 'Cancel' : 'New Request'}
+          {showCreateForm ? "Cancel" : "New Request"}
         </button>
       </div>
 
       {showCreateForm && (
         <div className="card max-w-2xl">
-          <h3 className="text-lg font-medium text-gray-900 mb-4">Create New Request</h3>
+          <h3 className="text-lg font-medium text-gray-900 mb-4">
+            Create New Request
+          </h3>
           <form onSubmit={handleSubmit} className="space-y-4">
             <div>
-              <label htmlFor="assetId" className="block text-sm font-medium text-gray-700">
+              <label
+                htmlFor="assetId"
+                className="block text-sm font-medium text-gray-700"
+              >
                 Select Asset
               </label>
               <select
@@ -128,8 +145,8 @@ export default function Requests() {
               <button type="submit" className="btn-primary">
                 Submit Request
               </button>
-              <button 
-                type="button" 
+              <button
+                type="button"
                 onClick={() => setShowCreateForm(false)}
                 className="btn-secondary"
               >
@@ -146,9 +163,13 @@ export default function Requests() {
             <div className="w-16 h-16 bg-gray-100 rounded-full flex items-center justify-center mx-auto mb-4">
               <span className="text-gray-400 text-2xl">📋</span>
             </div>
-            <h3 className="text-lg font-medium text-gray-900 mb-2">No requests yet</h3>
-            <p className="text-gray-600 mb-4">Create your first asset request to get started</p>
-            <button 
+            <h3 className="text-lg font-medium text-gray-900 mb-2">
+              No requests yet
+            </h3>
+            <p className="text-gray-600 mb-4">
+              Create your first asset request to get started
+            </p>
+            <button
               onClick={() => setShowCreateForm(true)}
               className="btn-primary"
             >
@@ -181,23 +202,37 @@ export default function Requests() {
                 {requests.map((request) => (
                   <tr key={request.id}>
                     <td className="px-6 py-4 whitespace-nowrap">
-                      <div className="text-sm font-medium text-gray-900">{request.asset?.name || 'Unknown Asset'}</div>
-                      <div className="text-sm text-gray-500">{request.asset?.category}</div>
+                      <div className="text-sm font-medium text-gray-900">
+                        {request.assetName || "Unknown Asset"}
+                      </div>
+                      <div className="text-sm text-gray-500">
+                        {request.asset?.category}
+                      </div>
                     </td>
                     {/* <td className="px-6 py-4">
                       <div className="text-sm text-gray-900">{request.reason}</div>
                     </td> */}
                     <td className="px-6 py-4 whitespace-nowrap">
-                      <span className={`inline-flex px-2 py-1 text-xs font-semibold rounded-full ${getStatusColor(request.status)}`}>
-                        {request.status}
+                      <span
+                        className={`inline-flex px-2 py-1 text-xs font-semibold rounded-full ${getStatusColor(
+                          request.status
+                        )}`}
+                      >
+                        {getRequestStatusText(request.status)}
                       </span>
                     </td>
                     <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
                       {new Date(request.requestDate).toLocaleDateString()}
                     </td>
                     <td className="px-6 py-4 whitespace-nowrap">
-                      <span className={`inline-flex px-2 py-1 text-xs font-semibold rounded-full ${request.assetStatus === 0 ? 'bg-green-100 text-green-800' : 'bg-red-100 text-red-800'}`}>
-                        {request.assetStatus === 0 ? 'Available' : 'Assigned'}
+                      <span
+                        className={`inline-flex px-2 py-1 text-xs font-semibold rounded-full ${
+                          request.assetStatus === 0
+                            ? "bg-green-100 text-green-800"
+                            : "bg-red-100 text-red-800"
+                        }`}
+                      >
+                        {request.assetStatus === 0 ? "Available" : "Assigned"}
                       </span>
                     </td>
                   </tr>

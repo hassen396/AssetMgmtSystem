@@ -12,6 +12,8 @@ namespace AssetMgmtApi.DTOs
 
         public string? UserName { get; set; }
         public string? AssetName { get; set; }
+        public string? AssetCategory { get; set; }
+        public int AssetStatus { get; set; }
 
     }
 }
