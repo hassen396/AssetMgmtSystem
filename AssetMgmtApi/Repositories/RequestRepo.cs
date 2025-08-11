@@ -31,12 +31,18 @@ namespace AssetMgmtApi.Repositories
 
         public async Task<List<AssetRequest>?> GetAllAsync()
         {
-            return await _context.AssetRequests.Include(r => r.Asset).ToListAsync();
+            return await _context.AssetRequests
+                .Include(r => r.Asset)
+                .Include(r => r.User)
+                .ToListAsync();
         }
 
         public async Task<AssetRequest?> GetAssetRequestAsync(Guid id)
         {
-            return await _context.AssetRequests.Include(r => r.Asset).FirstOrDefaultAsync(r => r.Id == id);
+            return await _context.AssetRequests
+                .Include(r => r.Asset)
+                .Include(r => r.User)
+                .FirstOrDefaultAsync(r => r.Id == id);
         }
     }
 }

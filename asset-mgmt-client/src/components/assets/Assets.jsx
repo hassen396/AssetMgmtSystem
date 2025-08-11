@@ -1,6 +1,6 @@
 import { useState, useEffect } from 'react';
 import { Link } from 'react-router-dom';
-import { assetAPI } from '../../services/api';
+import { assetAPI, requestAPI } from '../../services/api';
 import { useAuth } from '../../contexts/useAuth';
 
 export default function Assets() {
@@ -90,13 +90,40 @@ export default function Assets() {
                     </span>
                   </td>
                   <td className="px-6 py-4 whitespace-nowrap text-sm font-medium">
-                    {(user?.Role?.toLowerCase() === 'admin' || user?.role?.toLowerCase() === 'admin') && (
-                      <Link
-                        to={`/assets/${asset.id}/edit`}
-                        className="text-primary-600 hover:text-primary-900 mr-4"
+                    {(user?.Role?.toLowerCase() === 'admin' || user?.role?.toLowerCase() === 'admin') ? (
+                      <div className="flex space-x-3">
+                        <Link
+                          to={`/assets/${asset.id}/edit`}
+                          className="text-primary-600 hover:text-primary-900"
+                        >
+                          Edit
+                        </Link>
+                        <button
+                          onClick={() => {
+                            if (window.confirm('Are you sure you want to delete this asset?')) {
+                              assetAPI.delete(asset.id).then(() => fetchAssets());
+                            }
+                          }}
+                          className="text-red-600 hover:text-red-900"
+                        >
+                          Delete
+                        </button>
+                      </div>
+                    ) : (
+                      <button
+                        onClick={() => {
+                          if (asset.status === 0) { // Only allow requests for available assets
+                            requestAPI.create({ assetId: asset.id }).then(() => fetchAssets());
+                            alert('Request submitted successfully!');
+                          } else {
+                            alert('This asset is not available for request.');
+                          }
+                        }}
+                        className={`${asset.status === 0 ? 'text-primary-600 hover:text-primary-900' : 'text-gray-400 cursor-not-allowed'}`}
+                        disabled={asset.status !== 0}
                       >
-                        Edit
-                      </Link>
+                        Request
+                      </button>
                     )}
                   </td>
                 </tr>
