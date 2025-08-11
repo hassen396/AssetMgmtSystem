@@ -172,13 +172,16 @@ export default function Requests() {
                   <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
                     Date
                   </th>
+                  <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                    Availability
+                  </th>
                 </tr>
               </thead>
               <tbody className="bg-white divide-y divide-gray-200">
                 {requests.map((request) => (
                   <tr key={request.id}>
                     <td className="px-6 py-4 whitespace-nowrap">
-                      <div className="text-sm font-medium text-gray-900">{request.assetId}</div>
+                      <div className="text-sm font-medium text-gray-900">{request.asset?.name || 'Unknown Asset'}</div>
                       <div className="text-sm text-gray-500">{request.asset?.category}</div>
                     </td>
                     {/* <td className="px-6 py-4">
@@ -191,6 +194,11 @@ export default function Requests() {
                     </td>
                     <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
                       {new Date(request.requestDate).toLocaleDateString()}
+                    </td>
+                    <td className="px-6 py-4 whitespace-nowrap">
+                      <span className={`inline-flex px-2 py-1 text-xs font-semibold rounded-full ${request.assetStatus === 0 ? 'bg-green-100 text-green-800' : 'bg-red-100 text-red-800'}`}>
+                        {request.assetStatus === 0 ? 'Available' : 'Assigned'}
+                      </span>
                     </td>
                   </tr>
                 ))}

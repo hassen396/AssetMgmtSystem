@@ -1,6 +1,6 @@
-import { useState, useEffect } from 'react';
-import { Link } from 'react-router-dom';
-import { assetAPI } from '../../services/api';
+import { useState, useEffect } from "react";
+import { Link } from "react-router-dom";
+import { assetAPI } from "../../services/api";
 
 export default function AdminAssetManagement() {
   const [assets, setAssets] = useState([]);
@@ -15,19 +15,19 @@ export default function AdminAssetManagement() {
       const response = await assetAPI.getAll();
       setAssets(response.data);
     } catch (error) {
-      console.error('Error fetching assets:', error);
+      console.error("Error fetching assets:", error);
     } finally {
       setLoading(false);
     }
   };
 
   const handleDelete = async (id) => {
-    if (window.confirm('Are you sure you want to delete this asset?')) {
+    if (window.confirm("Are you sure you want to delete this asset?")) {
       try {
         await assetAPI.delete(id);
         fetchAssets();
       } catch (error) {
-        console.error('Error deleting asset:', error);
+        console.error("Error deleting asset:", error);
       }
     }
   };
@@ -72,16 +72,24 @@ export default function AdminAssetManagement() {
               {assets.map((asset) => (
                 <tr key={asset.id}>
                   <td className="px-6 py-4 whitespace-nowrap">
-                    <div className="text-sm font-medium text-gray-900">{asset.name}</div>
+                    <div className="text-sm font-medium text-gray-900">
+                      {asset.name}
+                    </div>
                   </td>
                   <td className="px-6 py-4 whitespace-nowrap">
-                    <div className="text-sm text-gray-900">{asset.category}</div>
+                    <div className="text-sm text-gray-900">
+                      {asset.category}
+                    </div>
                   </td>
                   <td className="px-6 py-4 whitespace-nowrap">
-                    <span className={`inline-flex px-2 py-1 text-xs font-semibold rounded-full ${
-                      asset.status === 'Available' ? 'bg-green-100 text-green-800' : 'bg-red-100 text-red-800'
-                    }`}>
-                      {asset.status}
+                    <span
+                      className={`inline-flex px-2 py-1 text-xs font-semibold rounded-full ${
+                        asset.status === 0
+                          ? "bg-green-100 text-green-800" // Available style
+                          : "bg-yellow-100 text-yellow-800" // Assigned style
+                      }`}
+                    >
+                      {asset.status === 0 ? "Available" : "Assigned"}
                     </span>
                   </td>
                   <td className="px-6 py-4 whitespace-nowrap text-sm font-medium">

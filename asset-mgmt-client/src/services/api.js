@@ -57,7 +57,7 @@ export const assetAPI = {
   getAll: () => api.get('/assets'),
   getAvailable: () => api.get('/assets/available'),
   getById: (id) => api.get(`/assets/${id}`),
-  create: (data) => api.post('/assets', data),
+  create: (data) => api.post('/assets/create', data),
   update: (id, data) => api.put(`/assets/${id}`, data),
   delete: (id) => api.delete(`/assets/${id}`),
 };

@@ -1,5 +1,5 @@
-import { useState, useEffect } from 'react';
-import { requestAPI } from '../../services/api';
+import { useState, useEffect } from "react";
+import { requestAPI } from "../../services/api";
 
 export default function AdminRequestManagement() {
   const [requests, setRequests] = useState([]);
@@ -9,12 +9,38 @@ export default function AdminRequestManagement() {
     fetchRequests();
   }, []);
 
+  const getRequestStatusText = (status) => {
+    switch (status) {
+      case 0:
+        return "Pending";
+      case 1:
+        return "Approved";
+      case 2:
+        return "Rejected";
+      default:
+        return "Unknown";
+    }
+  };
+
+  const getStatusColor = (status) => {
+    switch (status) {
+      case 0: // Pending
+        return "bg-yellow-100 text-yellow-800";
+      case 1: // Approved
+        return "bg-green-100 text-green-800";
+      case 2: // Rejected
+        return "bg-red-100 text-red-800";
+      default:
+        return "bg-gray-100 text-gray-800";
+    }
+  };
+
   const fetchRequests = async () => {
     try {
       const response = await requestAPI.getAll();
       setRequests(response.data);
     } catch (error) {
-      console.error('Error fetching requests:', error);
+      console.error("Error fetching requests:", error);
     } finally {
       setLoading(false);
     }
@@ -25,7 +51,7 @@ export default function AdminRequestManagement() {
       await requestAPI.approve(id);
       fetchRequests();
     } catch (error) {
-      console.error('Error approving request:', error);
+      console.error("Error approving request:", error);
     }
   };
 
@@ -34,7 +60,7 @@ export default function AdminRequestManagement() {
       await requestAPI.reject(id);
       fetchRequests();
     } catch (error) {
-      console.error('Error rejecting request:', error);
+      console.error("Error rejecting request:", error);
     }
   };
 
@@ -76,37 +102,38 @@ export default function AdminRequestManagement() {
               {requests.map((request) => (
                 <tr key={request.id}>
                   <td className="px-6 py-4 whitespace-nowrap">
-                    <div className="text-sm font-medium text-gray-900">{request.userName}</div>
+                    <div className="text-sm font-medium text-gray-900">
+                      {request.userName}
+                    </div>
                   </td>
                   <td className="px-6 py-4 whitespace-nowrap">
-                    <div className="text-sm text-gray-900">{request.assetName}</div>
+                    <div className="text-sm text-gray-900">
+                      {request.assetName}
+                    </div>
                   </td>
                   <td className="px-6 py-4 whitespace-nowrap">
-                    <span className={`inline-flex px-2 py-1 text-xs font-semibold rounded-full ${
-                      request.status === 'Pending' ? 'bg-yellow-100 text-yellow-800' :
-                      request.status === 'Approved' ? 'bg-green-100 text-green-800' :
-                      'bg-red-100 text-red-800'
-                    }`}>
-                      {request.status}
+                    <span
+                      className={`inline-flex px-2 py-1 text-xs font-semibold rounded-full ${getStatusColor(
+                        request.status
+                      )}`}
+                    >
+                      {getRequestStatusText(request.status)}
                     </span>
                   </td>
-                  <td className="px-6 py-4 whitespace-nowrap text-sm font-medium">
-                    {request.status === 'Pending' && (
-                      <>
-                        <button
-                          onClick={() => handleApprove(request.id)}
-                          className="text-green-600 hover:text-green-900 mr-4"
-                        >
-                          Approve
-                        </button>
-                        <button
-                          onClick={() => handleReject(request.id)}
-                          className="text-red-600 hover:text-red-900"
-                        >
-                          Reject
-                        </button>
-                      </>
-                    )}
+
+                  <td className="px-6 py-4 whitespace-nowrap text-sm font-medium space-x-2">
+                    <button
+                      onClick={() => handleApprove(request.id)}
+                      className="text-green-600 hover:text-green-900"
+                    >
+                      Approve
+                    </button>
+                    <button
+                      onClick={() => handleReject(request.id)}
+                      className="text-red-600 hover:text-red-900"
+                    >
+                      Reject
+                    </button>
                   </td>
                 </tr>
               ))}

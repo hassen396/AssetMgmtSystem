@@ -4,7 +4,7 @@ import { Bars3Icon, BellIcon, UserCircleIcon } from '@heroicons/react/24/outline
 import { useAuth } from '../../contexts/useAuth';
 import { useNavigate } from 'react-router-dom';
 
-export default function Navbar({ onMenuClick }) {
+export default function Navbar({ onMenuClick, menuButtonRef }) {
   const { user, logout } = useAuth();
   const navigate = useNavigate();
 
@@ -16,26 +16,25 @@ export default function Navbar({ onMenuClick }) {
   return (
     <nav className="bg-white shadow-sm border-b border-gray-200">
       <div className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
-        {/* Main Navbar Row */}
         <div className="relative flex items-center justify-between h-16">
-          {/* Left: Menu button */}
+          {/* Menu button */}
           <button
+            ref={menuButtonRef} // NEW
             type="button"
             className="lg:hidden -m-2.5 p-2.5 text-gray-700"
-            onClick={onMenuClick}
+            onClick={onMenuClick} // toggles sidebar
           >
-            <span className="sr-only">Open sidebar</span>
+            <span className="sr-only">Toggle sidebar</span>
             <Bars3Icon className="h-6 w-6" aria-hidden="true" />
           </button>
 
-          {/* Center: Title */}
+          {/* Title */}
           <h1 className="absolute left-1/2 transform -translate-x-1/2 text-xl font-semibold text-gray-900">
             Asset Management System
           </h1>
 
-          {/* Right: Icons & Menu */}
+          {/* Right side */}
           <div className="flex items-center gap-4 ml-auto">
-            {/* Notifications */}
             <button
               type="button"
               className="relative p-2 text-gray-400 hover:text-gray-500"
@@ -43,12 +42,11 @@ export default function Navbar({ onMenuClick }) {
               <BellIcon className="h-6 w-6" aria-hidden="true" />
             </button>
 
-            {/* User Menu */}
+            {/* User dropdown */}
             <Menu as="div" className="relative">
               <Menu.Button className="flex rounded-full bg-white text-sm focus:outline-none focus:ring-2 focus:ring-primary-500">
                 <UserCircleIcon className="h-8 w-8 text-gray-400" aria-hidden="true" />
               </Menu.Button>
-
               <Transition
                 as={Fragment}
                 enter="transition ease-out duration-100"
@@ -82,9 +80,7 @@ export default function Navbar({ onMenuClick }) {
                       {({ active }) => (
                         <button
                           onClick={() => navigate('/admin')}
-                          className={`${
-                            active ? 'bg-gray-100' : ''
-                          } block w-full px-4 py-2 text-left text-sm text-gray-700`}
+                          className={`${active ? 'bg-gray-100' : ''} block w-full px-4 py-2 text-left text-sm text-gray-700`}
                         >
                           Admin Panel
                         </button>
@@ -97,9 +93,7 @@ export default function Navbar({ onMenuClick }) {
                     {({ active }) => (
                       <button
                         onClick={handleLogout}
-                        className={`${
-                          active ? 'bg-gray-100' : ''
-                        } block w-full px-4 py-2 text-left text-sm text-gray-700`}
+                        className={`${active ? 'bg-gray-100' : ''} block w-full px-4 py-2 text-left text-sm text-gray-700`}
                       >
                         Sign out
                       </button>

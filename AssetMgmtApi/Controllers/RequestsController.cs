@@ -47,6 +47,7 @@ namespace AssetMgmtApi.Controllers
             var myRequests = await _context.AssetRequests
                 .Where(r => r.UserId == Guid.Parse(userId))
                 .Include(r => r.Asset)
+                .Include(r => r.User)
                 .OrderByDescending(r => r.RequestDate)
                 .ToListAsync();
 
