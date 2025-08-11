@@ -8,6 +8,7 @@ export const api = axios.create({
   headers: {
     'Content-Type': 'application/json',
   },
+  withCredentials: true, // Important for cookies to be included in all requests
 });
 
 // Request interceptor to add auth token
@@ -34,16 +35,20 @@ api.interceptors.response.use(
       originalRequest._retry = true;
 
       try {
-        const response = await axios.post(`${baseURL}/auth/refresh-token`);
+        // The refresh token is sent automatically as an HTTP-only cookie
+        const response = await axios.post(`${baseURL}/auth/refresh-token`, {}, {
+          withCredentials: true // Important for cookies to be included
+        });
         
         const { accessToken } = response.data;
         localStorage.setItem('token', accessToken);
         
         originalRequest.headers.Authorization = `Bearer ${accessToken}`;
         return api(originalRequest);
-      } catch (refreshError) {
+      } catch (error) {
+        // If refresh token is invalid or expired, clear local storage and redirect to login
+        console.error('Token refresh failed:', error);
         localStorage.removeItem('token');
-        localStorage.removeItem('refreshToken');
         window.location.href = '/login';
       }
     }
@@ -77,5 +82,6 @@ export const authAPI = {
   login: (credentials) => api.post('/auth/login', credentials),
   register: (userData) => api.post('/auth/register', userData),
   me: () => api.get('/auth/profile'),
-  refresh: (refreshToken) => api.post('/auth/refresh-token'),
+  refresh: () => api.post('/auth/refresh-token', {}), // No need to pass refresh token as it's in the cookie
+  logout: () => api.post('/auth/logout', {}), // Add logout endpoint to clear the refresh token cookie
 };

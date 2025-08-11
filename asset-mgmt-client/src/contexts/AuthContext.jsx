@@ -83,6 +83,7 @@ export const AuthProvider = ({ children }) => {
 
   const logout = async () => {
     try {
+      // This will clear the HTTP-only refresh token cookie on the server
       await api.post('/auth/logout');
     } catch (error) {
       console.error('Logout error:', error);
@@ -90,7 +91,7 @@ export const AuthProvider = ({ children }) => {
       setUser(null);
       setToken(null);
       localStorage.removeItem('token');
-      localStorage.removeItem('refreshToken');
+      // No need to remove refreshToken from localStorage as it's now an HTTP-only cookie
     }
   };
 

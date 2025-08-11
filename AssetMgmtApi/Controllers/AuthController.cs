@@ -100,8 +100,9 @@ namespace AssetMgmtApi.Controllers
             {
                 HttpOnly = true,
                 Secure = true,
-                SameSite = SameSiteMode.Strict,
-                Expires = refreshToken.Expires
+                SameSite = SameSiteMode.None,
+                Expires = refreshToken.Expires,
+                Path = "/"
             };
             Response.Cookies.Append("X-Refresh-Token", refreshToken.Token, cookieOptions);
         }
