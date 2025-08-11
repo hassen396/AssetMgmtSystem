@@ -94,7 +94,7 @@ namespace AssetMgmtApi.Controllers
         {
             var req = await _requestRepo.GetAssetRequestAsync(id);
             if (req == null) return NotFound();
-            if (req.Status != RequestStatus.Pending) return BadRequest("Already processed");
+            // if (req.Status != RequestStatus.Pending) return BadRequest("Already processed");
 
             // set request approved & asset assigned
             req.Status = RequestStatus.Approved;
@@ -109,7 +109,7 @@ namespace AssetMgmtApi.Controllers
         {
             var req = await _context.AssetRequests.FindAsync(id);
             if (req == null) return NotFound();
-            if (req.Status != RequestStatus.Pending) return BadRequest("Already processed");
+            // if (req.Status != RequestStatus.Pending) return BadRequest("Already processed");
             req.Status = RequestStatus.Rejected;
             await _context.SaveChangesAsync();
             return Ok(req);
