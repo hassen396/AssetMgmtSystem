@@ -32,8 +32,10 @@ namespace AssetMgmtApi.Repositories
         public async Task<List<AssetRequest>?> GetAllAsync()
         {
             return await _context.AssetRequests
-            .Include(r => r.Asset).Include(r => r.User)
-            .ToListAsync();
+                .Include(r => r.Asset)
+                .Include(r => r.User)
+                .OrderByDescending(r => r.RequestDate)
+                .ToListAsync();
         }
 
         public async Task<AssetRequest?> GetAssetRequestAsync(Guid id)
