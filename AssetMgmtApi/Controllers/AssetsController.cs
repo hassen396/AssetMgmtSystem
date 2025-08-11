@@ -37,7 +37,7 @@ namespace AssetMgmtApi.Controllers
             var assets = await _assetRepo.GetAllAssetsAsync();
             if (assets == null)
                 return NotFound("No asset is available");
-            
+
             var availableAssets = assets.Where(a => a.Status == AssetMgmtApi.Models.AssetStatus.Available);
             var assetsDto = availableAssets.Select(AssetExportMapper.MapToDto).ToList();
             return Ok(assetsDto);
@@ -66,31 +66,49 @@ namespace AssetMgmtApi.Controllers
         //     return CreatedAtAction(nameof(Get), new { id = assetDto.Id }, createAssetDto);
         // }
 
-        // [HttpPut("{id}")]
-        // [Authorize(Roles = "Admin")]
-        // public async Task<IActionResult> Update(Guid id, CreateUpdateAssetDto createAssetDto)
-        // {
-        //     //check if it exists in the database
-        //     var assetExists = await _assetRepo.AssetExistAsync(id);
-        //     if (!assetExists)
-        //     {
-        //         return BadRequest("There is no asset with this id");
-        //     }
-
-        //     if (createAssetDto == null)
-        //         return BadRequest("please fill the form");
-
-        //         //map to Asset
-        //     var asset = DtoExportMapper.MapFromDto(createAssetDto);
-        //     var updatedAsset = await _assetRepo.UpdateAssetAsync(asset, id);
-        //     var updatedAssetDto = AssetExportMapper.MapToDto(updatedAsset!);
-        //     return Ok(updatedAssetDto);
-        // }
-        [HttpPost]
+        [HttpPut("{id}")]
         [Authorize(Roles = "Admin")]
-        public async Task<IActionResult> Create([FromForm] CreateUpdateAssetDto requestDto)
+        public async Task<IActionResult> Update([FromRoute] Guid id, [FromBody] CreateUpdateAssetDto requestDto)
         {
-            
+            var asset = await _assetRepo.GetAssetByIdAsync(id);
+            if (asset == null)
+                return NotFound("Asset not found.");
+
+            // Update asset properties from DTO (except image)
+            asset.Name = requestDto.Name;
+            asset.Category = requestDto.Category;
+            asset.SerialNumber = requestDto.SerialNumber;
+            asset.PurchaseDate = requestDto.PurchaseDate;
+            asset.Status = (AssetStatus)requestDto.Status;
+            // Add other fields as needed
+
+            // Handle image upload if provided
+            if (requestDto.Image != null && requestDto.Image.Length > 0)
+            {
+                var uploadsFolder = Path.Combine(Directory.GetCurrentDirectory(), "wwwroot", "images");
+                if (!Directory.Exists(uploadsFolder))
+                    Directory.CreateDirectory(uploadsFolder);
+
+                var fileName = $"{Guid.NewGuid()}{Path.GetExtension(requestDto.Image.FileName)}";
+                var filePath = Path.Combine(uploadsFolder, fileName);
+
+                using (var stream = new FileStream(filePath, FileMode.Create))
+                {
+                    await requestDto.Image.CopyToAsync(stream);
+                }
+
+                asset.ImageUrl = $"/images/{fileName}";
+            }
+
+            var updatedAsset = await _assetRepo.UpdateAssetAsync(asset, id);
+            var updatedAssetDto = AssetExportMapper.MapToDto(updatedAsset!);
+            return Ok(updatedAssetDto);
+        }
+
+        [HttpPost("create")]
+        [Authorize(Roles = "Admin")]
+        public async Task<IActionResult> Create([FromBody] CreateUpdateAssetDto requestDto)
+        {
             var asset = DtoExportMapper.MapFromDto(requestDto);
 
             if (requestDto.Image != null && requestDto.Image.Length > 0)

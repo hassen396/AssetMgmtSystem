@@ -47,15 +47,15 @@ function App() {
                   } />
                   
                   <Route path="/assets/new" element={
-                    <ProtectedRoute>
+                    <AdminRoute>
                       <AssetForm />
-                    </ProtectedRoute>
+                    </AdminRoute>
                   } />
                   
                   <Route path="/assets/:id/edit" element={
-                    <ProtectedRoute>
+                    <AdminRoute>
                       <AssetForm />
-                    </ProtectedRoute>
+                    </AdminRoute>
                   } />
                   
                   <Route path="/requests" element={

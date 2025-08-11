@@ -125,12 +125,22 @@ namespace AssetMgmtApi.Controllers
                 return NotFound();
             }
 
-            return Ok(new
+            var roles = await _userManager.GetRolesAsync(user);
+            // Ensure role is returned with correct case
+            var role = roles.FirstOrDefault() ?? "";
+            // Log the role for debugging
+            Console.WriteLine($"User role: {role}");
+
+            // Create a proper anonymous object with both Role and role properties
+            var responseObj = new
             {
                 user.FirstName,
                 user.LastName,
-                user.Email
-            });
+                user.Email,
+                Role = role
+            };
+            
+            return Ok(responseObj);
         }
 
 

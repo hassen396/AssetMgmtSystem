@@ -1,15 +1,10 @@
-import { createContext, useContext, useState, useEffect } from 'react';
+import { createContext, useState, useEffect } from 'react';
 import { api } from '../services/api';
 
 const AuthContext = createContext();
 
-export const useAuth = () => {
-  const context = useContext(AuthContext);
-  if (!context) {
-    throw new Error('useAuth must be used within an AuthProvider');
-  }
-  return context;
-};
+// Export the context directly so it can be imported by the useAuth hook
+export { AuthContext };
 
 export const AuthProvider = ({ children }) => {
   const [user, setUser] = useState(null);
@@ -27,7 +22,16 @@ export const AuthProvider = ({ children }) => {
   const checkAuthStatus = async () => {
     try {
       const response = await api.get('/auth/profile');
-      setUser(response.data);
+      console.log('Profile response data:', response.data);
+      console.log('Role from profile:', response.data.role);
+      console.log('Role from profile (capitalized):', response.data.Role);
+      // Make sure we're setting the role with the correct case
+      const userData = {
+        ...response.data,
+        Role: response.data.role || response.data.Role
+      };
+      console.log('Final user data being set:', userData);
+      setUser(userData);
     } catch (error) {
       console.error('Auth check failed:', error);
       logout();
@@ -46,7 +50,15 @@ export const AuthProvider = ({ children }) => {
       
       // Get user profile after successful login
       const profileResponse = await api.get('/auth/profile');
-      setUser(profileResponse.data);
+      console.log('Profile response after login:', profileResponse.data);
+      
+      // Make sure we're setting the role with the correct case
+      const userData = {
+        ...profileResponse.data,
+        Role: profileResponse.data.role || profileResponse.data.Role
+      };
+      console.log('Final user data being set after login:', userData);
+      setUser(userData);
       
       return { success: true };
     } catch (error) {
@@ -83,7 +95,10 @@ export const AuthProvider = ({ children }) => {
   };
 
   const isAdmin = () => {
-    return user?.role === 'Admin';
+    console.log('User in isAdmin:', user);
+    console.log('User role:', user?.Role);
+    console.log('Is admin check result:', user?.Role === 'Admin');
+    return user?.Role === 'Admin';
   };
 
   const value = {

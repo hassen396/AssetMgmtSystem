@@ -1,10 +1,18 @@
 import { useState, useEffect } from 'react';
 import { Link } from 'react-router-dom';
 import { assetAPI } from '../../services/api';
+import { useAuth } from '../../contexts/useAuth';
 
 export default function Assets() {
   const [assets, setAssets] = useState([]);
   const [loading, setLoading] = useState(true);
+  const { user } = useAuth();
+  
+  console.log('User in Assets component:', user);
+  console.log('User role in Assets component:', user?.Role);
+  console.log('User role lowercase in Assets component:', user?.role);
+  console.log('Is admin check (Role):', user?.Role === 'Admin');
+  console.log('Is admin check (role):', user?.role === 'Admin');
 
   useEffect(() => {
     fetchAssets();
@@ -14,6 +22,12 @@ export default function Assets() {
     try {
       const response = await assetAPI.getAll();
       setAssets(response.data);
+      // Debug user role information
+      console.log('User object in fetchAssets:', user);
+      console.log('User role in fetchAssets:', user?.Role);
+      console.log('User role lowercase in fetchAssets:', user?.role);
+      console.log('Is admin check (Role) in fetchAssets:', user?.Role === 'Admin');
+      console.log('Is admin check (role) in fetchAssets:', user?.role === 'Admin');
     } catch (error) {
       console.error('Error fetching assets:', error);
     } finally {
@@ -33,9 +47,11 @@ export default function Assets() {
     <div className="space-y-6">
       <div className="flex justify-between items-center">
         <h1 className="text-2xl font-bold text-gray-900">Assets</h1>
-        <Link to="/assets/new" className="btn-primary">
-          Add Asset
-        </Link>
+        {(user?.Role?.toLowerCase() === 'admin' || user?.role?.toLowerCase() === 'admin') && (
+          <Link to="/assets/new" className="btn-primary">
+            Add Asset
+          </Link>
+        )}
       </div>
 
       <div className="card">
@@ -68,18 +84,20 @@ export default function Assets() {
                   </td>
                   <td className="px-6 py-4 whitespace-nowrap">
                     <span className={`inline-flex px-2 py-1 text-xs font-semibold rounded-full ${
-                      asset.status === 'Available' ? 'bg-green-100 text-green-800' : 'bg-red-100 text-red-800'
+                      asset.status === 0 ? 'bg-green-100 text-green-800' : 'bg-red-100 text-red-800'
                     }`}>
-                      {asset.status}
+                      {asset.status === 0 ? 'Available' : 'Assigned'}
                     </span>
                   </td>
                   <td className="px-6 py-4 whitespace-nowrap text-sm font-medium">
-                    <Link
-                      to={`/assets/${asset.id}/edit`}
-                      className="text-primary-600 hover:text-primary-900 mr-4"
-                    >
-                      Edit
-                    </Link>
+                    {(user?.Role?.toLowerCase() === 'admin' || user?.role?.toLowerCase() === 'admin') && (
+                      <Link
+                        to={`/assets/${asset.id}/edit`}
+                        className="text-primary-600 hover:text-primary-900 mr-4"
+                      >
+                        Edit
+                      </Link>
+                    )}
                   </td>
                 </tr>
               ))}
