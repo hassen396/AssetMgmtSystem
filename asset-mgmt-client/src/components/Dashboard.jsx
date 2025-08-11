@@ -1,5 +1,5 @@
 import { Link } from 'react-router-dom';
-import { useAuth } from '../contexts/AuthContext'; // import useAuth
+import { useAuth } from '../contexts/useAuth'; // import useAuth
 
 export default function Dashboard() {
   const { user } = useAuth(); // get user from auth context

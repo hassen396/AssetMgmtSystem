@@ -404,3 +404,4 @@ FodyWeavers.xsd
 .DS_Store
 archive.cs
 NET Developers Assignment.pdf
+AssetMgmtApi/appsettings.json
