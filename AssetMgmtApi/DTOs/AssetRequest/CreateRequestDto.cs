@@ -1,4 +1,4 @@
-namespace AssetMgmtApi.DTOs
+namespace AssetMgmtApi.DTOs.AssetRequest
 {
     public class CreateRequestDto
     {

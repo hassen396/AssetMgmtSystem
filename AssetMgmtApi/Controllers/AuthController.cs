@@ -1,11 +1,13 @@
 using System.IdentityModel.Tokens.Jwt;
 using System.Security.Claims;
 using AssetMgmtApi.DTOs;
+using AssetMgmtApi.DTOs.Auth;
 using AssetMgmtApi.Models;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Authorization;
 using AssetMgmtApi.Interfaces;
+using AssetMgmtApi.Services;
 
 namespace AssetMgmtApi.Controllers
 {
@@ -14,6 +16,7 @@ namespace AssetMgmtApi.Controllers
     public class AuthController : ControllerBase
     {
         private readonly UserManager<User> _userManager;
+
         // private readonly IConfiguration _configuration;
         private readonly IAuthRepo _authRepo;
         private readonly IAuthService _authService;
@@ -29,13 +32,16 @@ namespace AssetMgmtApi.Controllers
             _authRepo = authRepo;
             _authService = authService;
             _roleManager = roleManager;
-
         }
 
 
         [HttpPost("register")]
         public async Task<IActionResult> Register([FromBody] RegisterDto registerDto)
         {
+            var roleExists = await _roleManager.RoleExistsAsync(registerDto.Role);
+            if (!roleExists)
+                return BadRequest(new { message = $"Role '{registerDto.Role}' does not exist." });
+
             var user = new User
             {
                 FirstName = registerDto.FirstName,
@@ -43,21 +49,17 @@ namespace AssetMgmtApi.Controllers
                 Email = registerDto.Email,
                 UserName = registerDto.Email,
             };
+            
             var result = await _userManager.CreateAsync(user, registerDto.Password);
             if (!result.Succeeded)
                 return BadRequest(result.Errors);
 
-            if (!await _userManager.IsInRoleAsync(user, registerDto.Role))
-            {
-                var roleExists = await _roleManager.RoleExistsAsync(registerDto.Role);
-                if (!roleExists)
-                    return BadRequest(new { message = $"Role '{registerDto.Role}' does not exist." });
-            }
 
             await _userManager.AddToRoleAsync(user, registerDto.Role);
 
             return Ok("user created successfully");
         }
+
         [Authorize(Roles = "User")]
         [HttpGet("test-with-User-role")]
         public IActionResult TestUerRole()
@@ -104,10 +106,14 @@ namespace AssetMgmtApi.Controllers
                 Expires = refreshToken.Expires,
                 Path = "/"
             };
+
+            if (refreshToken.Token == null)
+            {
+                return;
+            }
+
             Response.Cookies.Append("X-Refresh-Token", refreshToken.Token, cookieOptions);
         }
-
-
 
 
         [HttpGet("profile")]
@@ -140,7 +146,7 @@ namespace AssetMgmtApi.Controllers
                 user.Email,
                 Role = role
             };
-            
+
             return Ok(responseObj);
         }
 
@@ -159,11 +165,10 @@ namespace AssetMgmtApi.Controllers
             {
                 return Unauthorized(new { message = result.ErrorMessage });
             }
+
             SetRefreshTokenCookie(result.NewRefreshToken!);
             return Ok(new { accessToken = result.AccessToken });
         }
-
-
 
 
         [Authorize]
@@ -172,8 +177,6 @@ namespace AssetMgmtApi.Controllers
         {
             return Ok("This is a test endpoint for authenticated users.");
         }
-
-
 
 
         [HttpPost("logout")]
@@ -194,6 +197,5 @@ namespace AssetMgmtApi.Controllers
 
             return Ok(new { message = "Logout successfully" });
         }
-
     }
 }

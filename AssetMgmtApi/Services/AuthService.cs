@@ -2,6 +2,7 @@ using System.IdentityModel.Tokens.Jwt;
 using System.Security.Claims;
 using System.Text;
 using AssetMgmtApi.DTOs;
+using AssetMgmtApi.DTOs.Auth;
 using AssetMgmtApi.Interfaces;
 using AssetMgmtApi.Models;
 using Microsoft.AspNetCore.Identity;

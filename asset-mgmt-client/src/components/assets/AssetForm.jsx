@@ -11,7 +11,9 @@ export default function AssetForm() {
     category: '',
     serialNumber: '',
     purchaseDate: '',
-    status: 0 // Enum int: Available = 0, Assigned = 1
+    status: 0,
+    image: null, // NEW
+    imageUrl: '', // For edit preview
   });
 
   useEffect(() => {
@@ -29,7 +31,9 @@ export default function AssetForm() {
         category: asset.category || '',
         serialNumber: asset.serialNumber || '',
         purchaseDate: asset.purchaseDate ? asset.purchaseDate.split('T')[0] : '',
-        status: asset.status ?? 0
+        status: asset.status ?? 0,
+        image: null,
+        imageUrl: asset.imageUrl || '',
       });
     } catch (error) {
       console.error('Error fetching asset:', error);
@@ -44,23 +48,22 @@ export default function AssetForm() {
     }));
   };
 
+  const handleFileChange = (e) => {
+    setFormData((prev) => ({
+      ...prev,
+      image: e.target.files[0],
+    }));
+  };
+
   const handleSubmit = async (e) => {
     e.preventDefault();
     setLoading(true);
 
-    const payload = {
-      name: formData.name,
-      category: formData.category,
-      serialNumber: formData.serialNumber,
-      purchaseDate: formData.purchaseDate,
-      status: formData.status
-    };
-
     try {
       if (id) {
-        await assetAPI.update(id, payload);
+        await assetAPI.update(id, formData);
       } else {
-        await assetAPI.create(payload);
+        await assetAPI.create(formData);
       }
       navigate('/assets');
     } catch (error) {
@@ -171,6 +174,31 @@ export default function AssetForm() {
               <option value={0}>Available</option>
               <option value={1}>Assigned</option>
             </select>
+          </div>
+
+          {/* Image Upload */}
+          <div>
+            <label htmlFor="image" className="block text-sm font-medium text-gray-700">
+              Asset Image
+            </label>
+            <input
+              type="file"
+              id="image"
+              name="image"
+              accept="image/*"
+              onChange={handleFileChange}
+              className="mt-1"
+            />
+            {formData.image && (
+              <p className="text-sm text-gray-500 mt-1">Selected: {formData.image.name}</p>
+            )}
+            {!formData.image && formData.imageUrl && (
+              <img
+                src={formData.imageUrl}
+                alt="Asset"
+                className="mt-2 h-32 rounded border"
+              />
+            )}
           </div>
 
           {/* Buttons */}

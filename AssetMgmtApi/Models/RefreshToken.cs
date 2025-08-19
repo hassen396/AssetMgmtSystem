@@ -7,15 +7,22 @@ namespace AssetMgmtApi.Models;
 public class RefreshToken
 {
     [Key]
-    public Guid Id { get; set; } = Guid.NewGuid();
-    public string Token { get; set; } = null!;
-    public DateTime Expires { get; set; }
-    public bool IsRevoked { get; set; } = false;
-    public DateTime Created { get; set; } = DateTime.UtcNow;
+    public Guid Id { get; init; }
+    
+    [StringLength(1000, ErrorMessage = "refresh token cannot exceed 1000 characters")]
+    public string? Token { get; init; } 
+    
+    public DateTimeOffset Expires { get; init; }
+    
+    public bool IsRevoked { get; set; }
+    
+    public DateTimeOffset Created { get; init; } = DateTimeOffset.UtcNow;
 
+    
     [ForeignKey("User")]
-    public Guid UserId { get; set; }
+    public Guid UserId { get; init; }
 
+    
     [JsonIgnore]
-    public User User { get; set; } = null!;
+    public User User { get; init; } = null!;
 }

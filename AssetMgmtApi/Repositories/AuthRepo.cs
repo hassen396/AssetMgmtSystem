@@ -3,7 +3,6 @@ using AssetMgmtApi.Models;
 using AssetMgmtApi.Interfaces;
 using Microsoft.EntityFrameworkCore;
 using AssetMgmtApi.Utils;
-using Microsoft.AspNetCore.Http.HttpResults;
 
 namespace AssetMgmtApi.Repositories
 {
@@ -65,7 +64,6 @@ namespace AssetMgmtApi.Repositories
                 return;
             storedToken.IsRevoked = true;
             await _context.SaveChangesAsync();
-            return;
         }
     }
 }

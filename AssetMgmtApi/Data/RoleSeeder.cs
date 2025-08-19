@@ -7,10 +7,10 @@ namespace AssetMgmtApi.Data
     public static class DataSeeder
     {
         // Predefined GUIDs for consistency
-        private static readonly Guid adminRoleId = Guid.Parse("11111111-1111-1111-1111-111111111111");
-        private static readonly Guid userRoleId = Guid.Parse("22222222-2222-2222-2222-222222222222");
-        private static readonly Guid adminUserId = Guid.Parse("33333333-3333-3333-3333-333333333333");
-        private static readonly Guid normalUserId = Guid.Parse("44444444-4444-4444-4444-444444444444");
+        private static readonly Guid AdminRoleId =Guid.NewGuid();
+        private static readonly Guid UserRoleId = Guid.NewGuid();
+        private static readonly Guid AdminUserId = Guid.NewGuid();
+        private static readonly Guid NormalUserId = Guid.NewGuid();
 
         public static async Task SeedAsync(ApplicationDbContext context, RoleManager<IdentityRole<Guid>> roleManager, UserManager<User> userManager)
         {
@@ -23,12 +23,12 @@ namespace AssetMgmtApi.Data
         {
             if (!await roleManager.RoleExistsAsync("Admin"))
             {
-                await roleManager.CreateAsync(new IdentityRole<Guid>("Admin") { Id = adminRoleId });
+                await roleManager.CreateAsync(new IdentityRole<Guid>("Admin") { Id = AdminRoleId });
             }
 
             if (!await roleManager.RoleExistsAsync("User"))
             {
-                await roleManager.CreateAsync(new IdentityRole<Guid>("User") { Id = userRoleId });
+                await roleManager.CreateAsync(new IdentityRole<Guid>("User") { Id = UserRoleId });
             }
         }
 
@@ -38,7 +38,7 @@ namespace AssetMgmtApi.Data
             {
                 var adminUser = new User
                 {
-                    Id = adminUserId,
+                    Id = AdminUserId,
                     FirstName = "System",
                     LastName = "Admin",
                     Email = "admin@company.test",
@@ -46,8 +46,8 @@ namespace AssetMgmtApi.Data
                     UserName = "admin@company.test",
                     NormalizedUserName = "ADMIN@COMPANY.TEST",
                     EmailConfirmed = true,
-                    SecurityStamp = Guid.Parse("bbbbbbbb-bbbb-bbbb-bbbb-bbbbbbbbbbbb").ToString("D"),
-                    ConcurrencyStamp = "cccccccc-cccc-cccc-cccc-cccccccccccc"
+                    SecurityStamp = Guid.NewGuid().ToString("D"),
+                    ConcurrencyStamp = Guid.NewGuid().ToString()
                 };
 
                 var result = await userManager.CreateAsync(adminUser, "Admin123!");
@@ -61,7 +61,7 @@ namespace AssetMgmtApi.Data
             {
                 var normalUser = new User
                 {
-                    Id = normalUserId,
+                    Id = NormalUserId,
                     FirstName = "John",
                     LastName = "Doe",
                     Email = "user@company.test",
@@ -69,8 +69,8 @@ namespace AssetMgmtApi.Data
                     UserName = "user@company.test",
                     NormalizedUserName = "USER@COMPANY.TEST",
                     EmailConfirmed = true,
-                    SecurityStamp = Guid.Parse("aaaaaaaa-bbbb-bbbb-bbbb-bbbbbbbbbbbb").ToString("D"),
-                    ConcurrencyStamp = "dddddddd-dddd-dddd-dddd-dddddddddddd"
+                    SecurityStamp = Guid.NewGuid().ToString("D"),
+                    ConcurrencyStamp = Guid.NewGuid().ToString()
                 };
 
                 var result = await userManager.CreateAsync(normalUser, "User123!");

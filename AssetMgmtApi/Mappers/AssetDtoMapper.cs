@@ -1,9 +1,10 @@
 using AssetMgmtApi.DTOs;
+using AssetMgmtApi.DTOs.Asset;
 using AssetMgmtApi.Models;
 
 namespace AssetMgmtApi.Mappers
 {
-    public class AssetExportMapper
+    public abstract class AssetExportMapper
     {
 
         public static AssetSummaryDto MapToDto(Asset asset)
@@ -29,7 +30,7 @@ namespace AssetMgmtApi.Mappers
                 Name = createUpdateDto.Name,
                 Category = createUpdateDto.Category,
                 SerialNumber = createUpdateDto.SerialNumber,
-                PurchaseDate = createUpdateDto.PurchaseDate,
+                PurchaseDate = createUpdateDto.PurchaseDate.ToUniversalTime(),
                 Status = (AssetStatus)createUpdateDto.Status,
                 // ImageUrl = createUpdateDto.ImageUrl
             };

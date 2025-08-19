@@ -62,8 +62,28 @@ export const assetAPI = {
   getAll: () => api.get('/assets'),
   getAvailable: () => api.get('/assets/available'),
   getById: (id) => api.get(`/assets/${id}`),
-  create: (data) => api.post('/assets/create', data),
-  update: (id, data) => api.put(`/assets/${id}`, data),
+   create: (data) => {
+    const formData = new FormData();
+    Object.keys(data).forEach((key) => {
+      if (data[key] !== null && data[key] !== undefined) {
+        formData.append(key, data[key]);
+      }
+    });
+    return api.post('/assets/create', formData, {
+      headers: { 'Content-Type': 'multipart/form-data' },
+    });
+  },
+    update: (id, data) => {
+    const formData = new FormData();
+    Object.keys(data).forEach((key) => {
+      if (data[key] !== null && data[key] !== undefined) {
+        formData.append(key, data[key]);
+      }
+    });
+    return api.put(`/assets/${id}`, formData, {
+      headers: { 'Content-Type': 'multipart/form-data' },
+    });
+  },
   delete: (id) => api.delete(`/assets/${id}`),
 };
 

@@ -3,6 +3,7 @@ using System;
 using AssetMgmtApi.Data;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Infrastructure;
+using Microsoft.EntityFrameworkCore.Migrations;
 using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 using Npgsql.EntityFrameworkCore.PostgreSQL.Metadata;
 
@@ -11,9 +12,11 @@ using Npgsql.EntityFrameworkCore.PostgreSQL.Metadata;
 namespace AssetMgmtApi.Migrations
 {
     [DbContext(typeof(ApplicationDbContext))]
-    partial class ApplicationDbContextModelSnapshot : ModelSnapshot
+    [Migration("20250814214317_Annotate filds to specify max length and change time to utc")]
+    partial class Annotatefildstospecifymaxlengthandchangetimetoutc
     {
-        protected override void BuildModel(ModelBuilder modelBuilder)
+        /// <inheritdoc />
+        protected override void BuildTargetModel(ModelBuilder modelBuilder)
         {
 #pragma warning disable 612, 618
             modelBuilder
@@ -42,8 +45,8 @@ namespace AssetMgmtApi.Migrations
                         .HasMaxLength(50)
                         .HasColumnType("character varying(50)");
 
-                    b.Property<DateTimeOffset>("PurchaseDate")
-                        .HasColumnType("timestamp with time zone");
+                    b.Property<DateTime>("PurchaseDate")
+                        .HasColumnType("timestamp without time zone");
 
                     b.Property<string>("SerialNumber")
                         .IsRequired()
@@ -67,8 +70,8 @@ namespace AssetMgmtApi.Migrations
                     b.Property<Guid>("AssetId")
                         .HasColumnType("uuid");
 
-                    b.Property<DateTimeOffset>("RequestDate")
-                        .HasColumnType("timestamp with time zone");
+                    b.Property<DateTime>("RequestDate")
+                        .HasColumnType("timestamp without time zone");
 
                     b.Property<int>("Status")
                         .HasColumnType("integer");
@@ -91,11 +94,11 @@ namespace AssetMgmtApi.Migrations
                         .ValueGeneratedOnAdd()
                         .HasColumnType("uuid");
 
-                    b.Property<DateTimeOffset>("Created")
-                        .HasColumnType("timestamp with time zone");
+                    b.Property<DateTime>("Created")
+                        .HasColumnType("timestamp without time zone");
 
-                    b.Property<DateTimeOffset>("Expires")
-                        .HasColumnType("timestamp with time zone");
+                    b.Property<DateTime>("Expires")
+                        .HasColumnType("timestamp without time zone");
 
                     b.Property<bool>("IsRevoked")
                         .HasColumnType("boolean");
