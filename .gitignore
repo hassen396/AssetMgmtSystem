@@ -405,3 +405,6 @@ FodyWeavers.xsd
 archive.cs
 NET Developers Assignment.pdf
 AssetMgmtApi/appsettings.json
+wwwroot/
+.idea
+AssetMgmtApi/archive.txt

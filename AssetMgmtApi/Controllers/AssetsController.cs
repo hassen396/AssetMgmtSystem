@@ -38,7 +38,7 @@ namespace AssetMgmtApi.Controllers
             if (assets == null)
                 return NotFound("No asset is available");
 
-            var availableAssets = assets.Where(a => a.Status == AssetMgmtApi.Models.AssetStatus.Available);
+            var availableAssets = assets.Where(a => a.Status == AssetStatus.Available);
             var assetsDto = availableAssets.Select(AssetExportMapper.MapToDto).ToList();
             return Ok(assetsDto);
         }
@@ -65,7 +65,40 @@ namespace AssetMgmtApi.Controllers
         //     var assetDto = AssetExportMapper.MapToDto(asset);
         //     return CreatedAtAction(nameof(Get), new { id = assetDto.Id }, createAssetDto);
         // }
+        
+        [HttpPost("create")]
+        [Authorize(Roles = "Admin")]
+        public async Task<IActionResult> Create([FromForm] CreateUpdateAssetDto requestDto)
+        {
+            var asset = DtoExportMapper.MapFromDto(requestDto);
 
+            if (requestDto.Image != null && requestDto.Image.Length > 0)
+            {
+                var uploadsFolder = Path.Combine(Directory.GetCurrentDirectory(), "wwwroot", "images");
+                if (!Directory.Exists(uploadsFolder))
+                {
+                    Directory.CreateDirectory(uploadsFolder);
+                }
+
+                var fileName = $"{Guid.NewGuid()}{Path.GetExtension(requestDto.Image.FileName)}";
+                var filePath = Path.Combine(uploadsFolder, fileName);
+
+                await using (var stream = new FileStream(filePath, FileMode.Create))
+                {
+                    await requestDto.Image.CopyToAsync(stream);
+                }
+
+                asset.ImageUrl = $"/images/{fileName}";
+            }
+
+            await _assetRepo.CreatAssetAsync(asset);
+
+            var createdAssetDto = AssetExportMapper.MapToDto(asset);
+
+            return CreatedAtAction(nameof(Get), new { id = createdAssetDto.Id }, createdAssetDto);
+        }
+
+        
         [HttpPut("{id}")]
         [Authorize(Roles = "Admin")]
         public async Task<IActionResult> Update([FromRoute] Guid id, [FromBody] CreateUpdateAssetDto requestDto)
@@ -105,37 +138,6 @@ namespace AssetMgmtApi.Controllers
             return Ok(updatedAssetDto);
         }
 
-        [HttpPost("create")]
-        [Authorize(Roles = "Admin")]
-        public async Task<IActionResult> Create([FromBody] CreateUpdateAssetDto requestDto)
-        {
-            var asset = DtoExportMapper.MapFromDto(requestDto);
-
-            if (requestDto.Image != null && requestDto.Image.Length > 0)
-            {
-                var uploadsFolder = Path.Combine(Directory.GetCurrentDirectory(), "wwwroot", "images");
-                if (!Directory.Exists(uploadsFolder))
-                {
-                    Directory.CreateDirectory(uploadsFolder);
-                }
-
-                var fileName = $"{Guid.NewGuid()}{Path.GetExtension(requestDto.Image.FileName)}";
-                var filePath = Path.Combine(uploadsFolder, fileName);
-
-                using (var stream = new FileStream(filePath, FileMode.Create))
-                {
-                    await requestDto.Image.CopyToAsync(stream);
-                }
-
-                asset.ImageUrl = $"/images/{fileName}";
-            }
-
-            await _assetRepo.CreatAssetAsync(asset);
-
-            var createdAssetDto = AssetExportMapper.MapToDto(asset);
-
-            return CreatedAtAction(nameof(Get), new { id = createdAssetDto.Id }, createdAssetDto);
-        }
 
         [HttpDelete("{id}")]
         [Authorize(Roles = "Admin")]

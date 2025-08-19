@@ -5,16 +5,16 @@ namespace AssetMgmtApi.Models
 {
     public class AssetRequest
     {
-        public Guid Id { get; set; }
-        public Guid UserId { get; set; } 
-        public Guid AssetId { get; set; }
+        public Guid Id { get; init; }
+        public Guid UserId { get; init; } 
+        public Guid AssetId { get; init; }
         public RequestStatus Status { get; set; } = RequestStatus.Pending;
-        public DateTime RequestDate { get; set; } = DateTime.UtcNow;
+        public DateTimeOffset RequestDate { get; set; } = DateTimeOffset.UtcNow;
 
         [JsonIgnore]
-        public Asset? Asset { get; set; }
+        public Asset? Asset { get; init; }
         [JsonIgnore]
-        public User? User { get; set; }
+        public User? User { get; init; }
     }
 
     public enum RequestStatus

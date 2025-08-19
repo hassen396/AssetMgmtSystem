@@ -29,7 +29,7 @@ namespace AssetMgmtApi.Mappers
                 Name = createUpdateDto.Name,
                 Category = createUpdateDto.Category,
                 SerialNumber = createUpdateDto.SerialNumber,
-                PurchaseDate = createUpdateDto.PurchaseDate,
+                PurchaseDate = createUpdateDto.PurchaseDate.ToUniversalTime(),
                 Status = (AssetStatus)createUpdateDto.Status,
                 // ImageUrl = createUpdateDto.ImageUrl
             };

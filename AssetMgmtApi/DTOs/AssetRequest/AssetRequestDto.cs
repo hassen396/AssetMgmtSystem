@@ -8,6 +8,6 @@ namespace AssetMgmtApi.DTOs
         public Guid UserId { get; set; } // Identity user id
         public Guid AssetId { get; set; }
         public RequestStatus Status { get; set; } = RequestStatus.Pending;
-        public DateTime RequestDate { get; set; } = DateTime.UtcNow;
+        public DateTimeOffset RequestDate { get; set; } = DateTimeOffset.UtcNow;
     }
 }
