@@ -7,6 +7,7 @@ using System.Security.Claims;
 using System.IdentityModel.Tokens.Jwt;
 using AssetMgmtApi.Interfaces;
 using AssetMgmtApi.DTOs;
+using AssetMgmtApi.DTOs.AssetRequest;
 using AssetMgmtApi.Mappers;
 
 namespace AssetMgmtApi.Controllers

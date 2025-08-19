@@ -1,6 +1,6 @@
 using System.ComponentModel.DataAnnotations;
 
-namespace AssetMgmtApi.DTOs
+namespace AssetMgmtApi.DTOs.Auth
 {
     public class RegisterDto
     {

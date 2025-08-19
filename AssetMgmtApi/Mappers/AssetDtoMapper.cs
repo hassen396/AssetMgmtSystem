@@ -1,9 +1,10 @@
 using AssetMgmtApi.DTOs;
+using AssetMgmtApi.DTOs.Asset;
 using AssetMgmtApi.Models;
 
 namespace AssetMgmtApi.Mappers
 {
-    public class AssetExportMapper
+    public abstract class AssetExportMapper
     {
 
         public static AssetSummaryDto MapToDto(Asset asset)

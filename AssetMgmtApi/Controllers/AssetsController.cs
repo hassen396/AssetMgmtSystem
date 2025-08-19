@@ -3,8 +3,7 @@ using Microsoft.AspNetCore.Authorization;
 using AssetMgmtApi.Interfaces;
 using AssetMgmtApi.Mappers;
 using AssetMgmtApi.DTOs;
-using Microsoft.AspNetCore.Http;
-using System.IO;
+using AssetMgmtApi.DTOs.Asset;
 using AssetMgmtApi.Models;
 
 namespace AssetMgmtApi.Controllers
@@ -70,6 +69,8 @@ namespace AssetMgmtApi.Controllers
         [Authorize(Roles = "Admin")]
         public async Task<IActionResult> Create([FromForm] CreateUpdateAssetDto requestDto)
         {
+            if(!ModelState.IsValid)
+                return BadRequest(ModelState);
             var asset = DtoExportMapper.MapFromDto(requestDto);
 
             if (requestDto.Image != null && requestDto.Image.Length > 0)
@@ -97,12 +98,15 @@ namespace AssetMgmtApi.Controllers
 
             return CreatedAtAction(nameof(Get), new { id = createdAssetDto.Id }, createdAssetDto);
         }
-
+            
         
         [HttpPut("{id}")]
         [Authorize(Roles = "Admin")]
-        public async Task<IActionResult> Update([FromRoute] Guid id, [FromBody] CreateUpdateAssetDto requestDto)
+        public async Task<IActionResult> Update([FromRoute] Guid id, [FromForm] CreateUpdateAssetDto requestDto)
         {
+            if(!ModelState.IsValid)
+                return BadRequest(ModelState);
+            
             var asset = await _assetRepo.GetAssetByIdAsync(id);
             if (asset == null)
                 return NotFound("Asset not found.");
@@ -111,7 +115,7 @@ namespace AssetMgmtApi.Controllers
             asset.Name = requestDto.Name;
             asset.Category = requestDto.Category;
             asset.SerialNumber = requestDto.SerialNumber;
-            asset.PurchaseDate = requestDto.PurchaseDate;
+            asset.PurchaseDate = requestDto.PurchaseDate.ToUniversalTime();
             asset.Status = (AssetStatus)requestDto.Status;
             // Add other fields as needed
 

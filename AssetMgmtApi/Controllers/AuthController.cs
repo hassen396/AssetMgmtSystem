@@ -1,11 +1,13 @@
 using System.IdentityModel.Tokens.Jwt;
 using System.Security.Claims;
 using AssetMgmtApi.DTOs;
+using AssetMgmtApi.DTOs.Auth;
 using AssetMgmtApi.Models;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Authorization;
 using AssetMgmtApi.Interfaces;
+using AssetMgmtApi.Services;
 
 namespace AssetMgmtApi.Controllers
 {

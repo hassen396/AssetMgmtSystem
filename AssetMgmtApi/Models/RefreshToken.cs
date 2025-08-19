@@ -14,7 +14,7 @@ public class RefreshToken
     
     public DateTimeOffset Expires { get; init; }
     
-    public bool IsRevoked { get; set; } = false;
+    public bool IsRevoked { get; set; }
     
     public DateTimeOffset Created { get; init; } = DateTimeOffset.UtcNow;
 

@@ -1,8 +1,8 @@
 using System.IdentityModel.Tokens.Jwt;
-using AssetMgmtApi.DTOs;
+using AssetMgmtApi.DTOs.Auth;
 using AssetMgmtApi.Models;
 
-namespace AssetMgmtApi.Interfaces
+namespace AssetMgmtApi.Services
 {
     public interface IAuthService
     {

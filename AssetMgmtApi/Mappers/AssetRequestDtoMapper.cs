@@ -1,4 +1,5 @@
 using AssetMgmtApi.DTOs;
+using AssetMgmtApi.DTOs.AssetRequest;
 using AssetMgmtApi.Models;
 
 namespace AssetMgmtApi.Mappers

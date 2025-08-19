@@ -1,6 +1,6 @@
 using AssetMgmtApi.Models;
 
-namespace AssetMgmtApi.DTOs
+namespace AssetMgmtApi.DTOs.AssetRequest
 {
     public class AssetRequestDto
     {

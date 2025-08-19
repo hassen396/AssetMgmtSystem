@@ -408,3 +408,4 @@ AssetMgmtApi/appsettings.json
 wwwroot/
 .idea
 AssetMgmtApi/archive.txt
+AssetMgmtApi/qodana.yaml
