@@ -24,8 +24,11 @@ namespace AssetMgmtApi.Models
         
         public AssetStatus Status { get; set; } = AssetStatus.Available;
         
-        [StringLength(200, ErrorMessage = "Description should not be empty or longer than 200 characters")]
+        [StringLength(200, ErrorMessage = "Image url should not be empty or longer than 200 characters")]
         public string? ImageUrl { get; set; }
+
+        [MaxLength(200, ErrorMessage = "ImagePublicId should not be empty or longer than 200 characters")]
+        public string? ImagePublicId { get; set; }
     }
 
     public enum AssetStatus

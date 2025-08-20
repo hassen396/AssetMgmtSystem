@@ -9,6 +9,7 @@ using AssetMgmtApi.Interfaces;
 using AssetMgmtApi.DTOs;
 using AssetMgmtApi.DTOs.AssetRequest;
 using AssetMgmtApi.Mappers;
+using AssetMgmtApi.Utils;
 
 namespace AssetMgmtApi.Controllers
 {
@@ -28,14 +29,14 @@ namespace AssetMgmtApi.Controllers
             _assetRepo = assetRepo;
         }
 
-        [HttpGet]
-        [Authorize(Roles = "Admin")]
-        public async Task<IActionResult> GetAll()
+        [HttpGet("get-paginated-requests")]
+        // [Authorize(Roles = "Admin")]
+        public async Task<IActionResult> GetRequests([FromQuery] RequestQueryObject assetQuery)
         {
-            var assetRequests = await _requestRepo.GetAllAsync();
+            var assetRequests = await _requestRepo.GetAllRequestsAsync(assetQuery);
             if (assetRequests == null) return NotFound(new { Message = "there is no request" });
-            var assetrRequestsDto = assetRequests.Select(AssetRequestExportMapper.MapToDto).ToList();
-            return Ok(assetrRequestsDto);
+            // var assetsRequestsDto = assetRequests.Select(AssetRequestExportMapper.MapToDto).ToList();
+            return Ok(assetRequests);
         }
 
         [HttpGet("my-requests")]

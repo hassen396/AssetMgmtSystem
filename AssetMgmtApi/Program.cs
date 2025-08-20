@@ -95,6 +95,11 @@ builder.Services.AddCors(options =>
         .WithOrigins("http://localhost:5173"));
 });
 
+
+builder.Services.Configure<CloudinarySettings>(builder.Configuration.GetSection("CloudinarySettings"));
+
+builder.Services.AddScoped<IPhotoService, CloudinaryPhotoService>();
+
 var app = builder.Build();
 
 // Configure the HTTP request pipeline.
