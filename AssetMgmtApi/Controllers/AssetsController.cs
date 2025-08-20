@@ -1,11 +1,10 @@
-using System.Diagnostics.CodeAnalysis;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Authorization;
 using AssetMgmtApi.Interfaces;
 using AssetMgmtApi.Mappers;
-using AssetMgmtApi.DTOs;
 using AssetMgmtApi.DTOs.Asset;
 using AssetMgmtApi.Models;
+using AssetMgmtApi.Services;
 using AssetMgmtApi.Utils;
 
 namespace AssetMgmtApi.Controllers
@@ -15,9 +14,12 @@ namespace AssetMgmtApi.Controllers
     public class AssetsController : ControllerBase
     {
         private readonly IAssetRepo _assetRepo;
-        public AssetsController(IAssetRepo assetRepo)
+        private readonly IPhotoService _photoService;
+
+        public AssetsController(IAssetRepo assetRepo, IPhotoService photoService)
         {
             _assetRepo = assetRepo;
+            _photoService = photoService;
         }
 
         [HttpGet("get-paginated-assets")]
@@ -30,11 +32,11 @@ namespace AssetMgmtApi.Controllers
             // var assetsDto = assets.Select(AssetExportMapper.MapToDto).ToList();
             return Ok(assetsList);
         }
-        
-        
+
+
         //TODO this method down below is added in the GetAssets method using filter,
         //update the frontend to use the filter instead
-        
+
         [HttpGet("available")]
         // [Authorize]
         public async Task<IActionResult> GetAvailableAssets()
@@ -46,7 +48,7 @@ namespace AssetMgmtApi.Controllers
             var assetsList = await _assetRepo.GetAllAssetsAsync(query);
             if (assetsList == null)
                 return NotFound("No asset is available");
-        
+
             // var availableAssets = assets.Where(a => a.Status == AssetStatus.Available);
             // var assetsDto = assets.Select(AssetExportMapper.MapToDto).ToList();
             return Ok(assetsList);
@@ -62,32 +64,25 @@ namespace AssetMgmtApi.Controllers
             var assetDto = AssetExportMapper.MapToDto(asset);
             return Ok(assetDto);
         }
-        
+
         [HttpPost("create")]
         // [Authorize(Roles = "Admin")]
         public async Task<IActionResult> Create([FromForm] CreateUpdateAssetDto requestDto)
         {
-            if(!ModelState.IsValid)
+            if (!ModelState.IsValid)
                 return BadRequest(ModelState);
             var asset = DtoExportMapper.MapFromDto(requestDto);
 
             if (requestDto.Image != null && requestDto.Image.Length > 0)
             {
-                var uploadsFolder = Path.Combine(Directory.GetCurrentDirectory(), "wwwroot", "images");
-                if (!Directory.Exists(uploadsFolder))
-                {
-                    Directory.CreateDirectory(uploadsFolder);
-                }
+                var uploadResult = await _photoService.AddPhotoAsync(requestDto.Image);
 
-                var fileName = $"{Guid.NewGuid()}{Path.GetExtension(requestDto.Image.FileName)}";
-                var filePath = Path.Combine(uploadsFolder, fileName);
+                if (uploadResult.Error != null)
+                    return BadRequest(uploadResult.Error.Message);
 
-                await using (var stream = new FileStream(filePath, FileMode.Create))
-                {
-                    await requestDto.Image.CopyToAsync(stream);
-                }
+                asset.ImageUrl = uploadResult.SecureUrl.AbsoluteUri;
 
-                asset.ImageUrl = $"/images/{fileName}";
+                asset.ImagePublicId = uploadResult.PublicId;
             }
 
             await _assetRepo.CreatAssetAsync(asset);
@@ -96,15 +91,15 @@ namespace AssetMgmtApi.Controllers
 
             return CreatedAtAction(nameof(Get), new { id = createdAssetDto.Id }, createdAssetDto);
         }
-            
-        
+
+
         [HttpPut("{id}")]
-        [Authorize(Roles = "Admin")]
+        // [Authorize(Roles = "Admin")]
         public async Task<IActionResult> Update([FromRoute] Guid id, [FromForm] CreateUpdateAssetDto requestDto)
         {
-            if(!ModelState.IsValid)
+            if (!ModelState.IsValid)
                 return BadRequest(ModelState);
-            
+
             var asset = await _assetRepo.GetAssetByIdAsync(id);
             if (asset == null)
                 return NotFound("Asset not found.");
@@ -120,19 +115,17 @@ namespace AssetMgmtApi.Controllers
             // Handle image upload if provided
             if (requestDto.Image != null && requestDto.Image.Length > 0)
             {
-                var uploadsFolder = Path.Combine(Directory.GetCurrentDirectory(), "wwwroot", "images");
-                if (!Directory.Exists(uploadsFolder))
-                    Directory.CreateDirectory(uploadsFolder);
-
-                var fileName = $"{Guid.NewGuid()}{Path.GetExtension(requestDto.Image.FileName)}";
-                var filePath = Path.Combine(uploadsFolder, fileName);
-
-                using (var stream = new FileStream(filePath, FileMode.Create))
+                var uploadResult = await _photoService.AddPhotoAsync(requestDto.Image);
+                if (uploadResult.Error != null)
+                    return BadRequest(uploadResult.Error.Message);
+                if (asset.ImagePublicId != null)
                 {
-                    await requestDto.Image.CopyToAsync(stream);
+                    var deleteResult = await _photoService.DeletePhotoAsync(asset.ImagePublicId);
+                    if(deleteResult.Error != null)  return BadRequest(new { Message = deleteResult.Error }) ;
                 }
 
-                asset.ImageUrl = $"/images/{fileName}";
+                asset.ImageUrl = uploadResult.SecureUrl.AbsoluteUri;
+                asset.ImagePublicId = uploadResult.PublicId;
             }
 
             var updatedAsset = await _assetRepo.UpdateAssetAsync(asset, id);
@@ -142,44 +135,19 @@ namespace AssetMgmtApi.Controllers
 
 
         [HttpDelete("{id}")]
-        [Authorize(Roles = "Admin")]
+        // [Authorize(Roles = "Admin")]
         public async Task<IActionResult> Delete([FromRoute] Guid id)
         {
-            var assetExists = await _assetRepo.AssetExistAsync(id);
-            if (!assetExists) return NotFound(new { Message = "Asset not not exist!" });
+            var asset = await _assetRepo.GetAssetByIdAsync(id);
+            if (asset == null) return NotFound(new { Message = "Asset not not exist!" });
+            if (asset.ImagePublicId != null)
+            {
+                await _photoService.DeletePhotoAsync(asset.ImagePublicId);
+            }
+            
             await _assetRepo.DeleteAssetAsync(id);
+            
             return Ok(new { Message = "Deleted Succussfully" });
         }
-
-        //     [HttpPost("upload-image")]
-        //     [Authorize(Roles = "Admin")]
-        //     public async Task<IActionResult> UploadImage([FromForm] UploadImageRequestDto request)
-        //     {
-        //         if (request.Image == null || request.Image.Length == 0)
-        //             return BadRequest("No image file provided.");
-
-        //         var asset = await _assetRepo.GetAssetByIdAsync(request.Id);
-        //         if (asset == null)
-        //             return NotFound("Asset not found.");
-
-        //         var uploadsFolder = Path.Combine(Directory.GetCurrentDirectory(), "wwwroot", "images");
-        //         if (!Directory.Exists(uploadsFolder))
-        //             Directory.CreateDirectory(uploadsFolder);
-
-        //         var fileName = $"{Guid.NewGuid()}{Path.GetExtension(request.Image.FileName)}";
-        //         var filePath = Path.Combine(uploadsFolder, fileName);
-
-        //         using (var stream = new FileStream(filePath, FileMode.Create))
-        //         {
-        //             await request.Image.CopyToAsync(stream);
-        //         }
-
-        //         var imageUrl = $"/images/{fileName}";
-        //         asset.ImageUrl = imageUrl;
-
-        //         await _assetRepo.UpdateAssetAsync(asset, request.Id);
-
-        //         return Ok(new { ImageUrl = imageUrl });
-        //     }
     }
 }
