@@ -1,6 +1,7 @@
 using AssetMgmtApi.Data;
 using AssetMgmtApi.Interfaces;
 using AssetMgmtApi.Models;
+using AssetMgmtApi.Utils;
 using Microsoft.EntityFrameworkCore;
 
 namespace AssetMgmtApi.Repositories
@@ -27,9 +28,33 @@ namespace AssetMgmtApi.Repositories
             return asset;
         }
 
-        public async Task<List<Asset>?> GetAllAssetsAsync()
+        public async Task<PagedList<Asset>?> GetAllAssetsAsync(AssetQueryObject  assetQuery)
         {
-            return await context.Assets.ToListAsync();
+            var assetsQuery = context.Assets.AsQueryable();
+            if (!string.IsNullOrWhiteSpace(assetQuery.Name))
+            {
+                var lowerCaseAssetName = assetQuery.Name.ToLower();
+                assetsQuery = assetsQuery.Where(a => a.Name.ToLower().Contains(lowerCaseAssetName));
+            }
+
+            if (!string.IsNullOrWhiteSpace(assetQuery.Category))
+            {
+                var lowerCaseAssetCategory = assetQuery.Category.ToLower();
+                assetsQuery = assetsQuery.Where(a => a.Category.ToLower().Contains(lowerCaseAssetCategory));
+            }
+
+            if (assetQuery.Status.HasValue )
+            {
+                assetsQuery = assetsQuery.Where(a => a.Status == assetQuery.Status.Value);
+            }
+            
+            //pagination goes here
+            var totalCount = await assetsQuery.CountAsync();
+            var pagedAssets = await assetsQuery
+                .Skip((assetQuery.PageNumber - 1) * assetQuery.PageSize)
+                .Take(assetQuery.PageSize)
+                .ToListAsync();
+            return  new PagedList<Asset>(pagedAssets, totalCount, assetQuery.PageNumber, assetQuery.PageSize);
         }
 
         public async Task<Asset?> GetAssetByIdAsync(Guid id)

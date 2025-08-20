@@ -1,3 +1,4 @@
+using System.Diagnostics.CodeAnalysis;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Authorization;
 using AssetMgmtApi.Interfaces;
@@ -5,6 +6,7 @@ using AssetMgmtApi.Mappers;
 using AssetMgmtApi.DTOs;
 using AssetMgmtApi.DTOs.Asset;
 using AssetMgmtApi.Models;
+using AssetMgmtApi.Utils;
 
 namespace AssetMgmtApi.Controllers
 {
@@ -18,28 +20,36 @@ namespace AssetMgmtApi.Controllers
             _assetRepo = assetRepo;
         }
 
-        [HttpGet]
-        [Authorize]
-        public async Task<IActionResult> GetAssets()
+        [HttpGet("get-paginated-assets")]
+        // [Authorize]
+        public async Task<IActionResult> GetAssets([FromQuery] AssetQueryObject assetQuery)
         {
-            var assets = await _assetRepo.GetAllAssetsAsync();
-            if (assets == null)
+            var assetsList = await _assetRepo.GetAllAssetsAsync(assetQuery);
+            if (assetsList == null)
                 return NotFound("No asset is available");
-            var assetsDto = assets.Select(AssetExportMapper.MapToDto).ToList();
-            return Ok(assetsDto);
+            // var assetsDto = assets.Select(AssetExportMapper.MapToDto).ToList();
+            return Ok(assetsList);
         }
-
+        
+        
+        //TODO this method down below is added in the GetAssets method using filter,
+        //update the frontend to use the filter instead
+        
         [HttpGet("available")]
-        [Authorize]
+        // [Authorize]
         public async Task<IActionResult> GetAvailableAssets()
         {
-            var assets = await _assetRepo.GetAllAssetsAsync();
-            if (assets == null)
+            var query = new AssetQueryObject
+            {
+                Status = 0
+            };
+            var assetsList = await _assetRepo.GetAllAssetsAsync(query);
+            if (assetsList == null)
                 return NotFound("No asset is available");
-
-            var availableAssets = assets.Where(a => a.Status == AssetStatus.Available);
-            var assetsDto = availableAssets.Select(AssetExportMapper.MapToDto).ToList();
-            return Ok(assetsDto);
+        
+            // var availableAssets = assets.Where(a => a.Status == AssetStatus.Available);
+            // var assetsDto = assets.Select(AssetExportMapper.MapToDto).ToList();
+            return Ok(assetsList);
         }
 
         [HttpGet("{id}")]
@@ -52,21 +62,9 @@ namespace AssetMgmtApi.Controllers
             var assetDto = AssetExportMapper.MapToDto(asset);
             return Ok(assetDto);
         }
-
-        // [HttpPost]
-        // [Authorize(Roles = "Admin")]
-        // public async Task<IActionResult> Create([FromBody] CreateUpdateAssetDto createAssetDto)
-        // {
-        //     // if()
-        //     //map from the dto to the domain
-        //     var asset = DtoExportMapper.MapFromDto(createAssetDto);
-        //     var savedAsset = await _assetRepo.CreatAssetAsync(asset);
-        //     var assetDto = AssetExportMapper.MapToDto(asset);
-        //     return CreatedAtAction(nameof(Get), new { id = assetDto.Id }, createAssetDto);
-        // }
         
         [HttpPost("create")]
-        [Authorize(Roles = "Admin")]
+        // [Authorize(Roles = "Admin")]
         public async Task<IActionResult> Create([FromForm] CreateUpdateAssetDto requestDto)
         {
             if(!ModelState.IsValid)

@@ -3,6 +3,7 @@ using AssetMgmtApi.DTOs;
 using AssetMgmtApi.DTOs.AssetRequest;
 using AssetMgmtApi.Interfaces;
 using AssetMgmtApi.Models;
+using AssetMgmtApi.Utils;
 using Microsoft.EntityFrameworkCore;
 
 namespace AssetMgmtApi.Repositories
@@ -30,13 +31,25 @@ namespace AssetMgmtApi.Repositories
             return await _context.AssetRequests.FindAsync(request.Id);// i gotta make sure id here!
         }
 
-        public async Task<List<AssetRequest>?> GetAllAsync()
+        public async Task<PagedList<AssetRequest>?> GetAllRequestsAsync(RequestQueryObject  query)
         {
-            return await _context.AssetRequests
-                .Include(r => r.Asset)
+            var request = _context.AssetRequests
+                .Include(r=> r.Asset)
                 .Include(r => r.User)
-                .OrderByDescending(r => r.RequestDate)
+                .OrderByDescending(r=> r.RequestDate)
+                .AsQueryable();
+            if (query.Status != null)
+            {
+                request = request.Where(r => r.Status == query.Status);
+            }
+            //pagination for requests goes here
+            var totalCount = request.Count();
+            var pagedRequests = await request
+                .Skip((query.PageNumber - 1) * query.PageSize)
+                .Take(query.PageSize)
                 .ToListAsync();
+            
+            return new PagedList<AssetRequest>(pagedRequests, totalCount, query.PageNumber, query.PageSize);
         }
 
         public async Task<AssetRequest?> GetAssetRequestAsync(Guid id)
