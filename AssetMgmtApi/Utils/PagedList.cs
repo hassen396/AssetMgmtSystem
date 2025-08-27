@@ -2,10 +2,8 @@ namespace AssetMgmtApi.Utils;
 
 public class PagedList<T>
 {
-    // The items for the current page
     public List<T> Items { get; }
 
-    // Metadata
     public int CurrentPage { get; }
     public int PageSize { get; }
     public int TotalCount { get; }

@@ -1,8 +1,8 @@
 using AssetMgmtApi.Data;
-using AssetMgmtApi.Models;
 using AssetMgmtApi.Interfaces;
-using Microsoft.EntityFrameworkCore;
+using AssetMgmtApi.Models;
 using AssetMgmtApi.Utils;
+using Microsoft.EntityFrameworkCore;
 
 namespace AssetMgmtApi.Repositories
 {

@@ -1,13 +1,14 @@
 using System.Text;
 using AssetMgmtApi.Data;
+using AssetMgmtApi.Interfaces;
 using AssetMgmtApi.Models;
 using AssetMgmtApi.Repositories;
-using AssetMgmtApi.Interfaces;
+using AssetMgmtApi.Services;
 using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.IdentityModel.Tokens;
-using AssetMgmtApi.Services;
+using Microsoft.OpenApi.Models;
 
 
 // AppContext.SetSwitch("Npgsql.EnableLegacyTimestampBehavior", true);
@@ -19,8 +20,8 @@ builder.Services.AddScoped<IAssetRepo, AssetRepo>();
 builder.Services.AddScoped<IRequestRepo, RequestRepo>();
 // Add services to the container.
 // Learn more about configuring OpenAPI at https://aka.ms/aspnet/openapi
-builder.Services.AddControllers();
 builder.Services.AddOpenApi();
+builder.Services.AddControllers();
 builder.Services.AddDbContext<ApplicationDbContext>(options =>
     options.UseNpgsql(builder.Configuration.GetConnectionString("Database")));
 
@@ -60,7 +61,7 @@ builder.Services.AddAuthorization();
 builder.Services.AddEndpointsApiExplorer();
 builder.Services.AddSwaggerGen(options =>
 {
-    options.SwaggerDoc("v1", new() { Title = "AssetMgmtApi", Version = "v1" });
+    options.SwaggerDoc("v1", new OpenApiInfo() { Title = "AssetMgmtApi", Version = "v1" });
     options.AddSecurityDefinition("Bearer", new Microsoft.OpenApi.Models.OpenApiSecurityScheme
     {
         Name = "Authorization",
@@ -81,7 +82,7 @@ builder.Services.AddSwaggerGen(options =>
                     Id = "Bearer"
                 }
             },
-            new string[] { }
+            []
         }
     });
 });
