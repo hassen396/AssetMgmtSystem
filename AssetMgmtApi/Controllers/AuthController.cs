@@ -1,6 +1,5 @@
 using System.IdentityModel.Tokens.Jwt;
 using System.Security.Claims;
-using AssetMgmtApi.DTOs;
 using AssetMgmtApi.DTOs.Auth;
 using AssetMgmtApi.Interfaces;
 using AssetMgmtApi.Models;

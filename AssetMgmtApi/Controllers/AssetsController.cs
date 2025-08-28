@@ -20,7 +20,6 @@ namespace AssetMgmtApi.Controllers
             var assetsList = await assetRepo.GetAllAssetsAsync(assetQuery);
             if (assetsList == null)
                 return NotFound("No asset is available");
-            // var assetsDto = assets.Select(AssetExportMapper.MapToDto).ToList();
             return Ok(assetsList);
         }
 
@@ -40,8 +39,6 @@ namespace AssetMgmtApi.Controllers
             if (assetsList == null)
                 return NotFound("No asset is available");
 
-            // var availableAssets = assets.Where(a => a.Status == AssetStatus.Available);
-            // var assetsDto = assets.Select(AssetExportMapper.MapToDto).ToList();
             return Ok(assetsList);
         }
 
@@ -84,7 +81,7 @@ namespace AssetMgmtApi.Controllers
         }
 
 
-        [HttpPut("{id}")]
+        [HttpPut("{id:guid}")]
         [Authorize(Roles = "Admin")]
         public async Task<IActionResult> Update([FromRoute] Guid id, [FromForm] CreateUpdateAssetDto requestDto)
         {
@@ -101,9 +98,7 @@ namespace AssetMgmtApi.Controllers
             asset.SerialNumber = requestDto.SerialNumber;
             asset.PurchaseDate = requestDto.PurchaseDate.ToUniversalTime();
             asset.Status = (AssetStatus)requestDto.Status;
-            // Add other fields as needed
 
-            // Handle image upload if provided
             if (requestDto.Image is { Length: > 0 })
             {
                 var uploadResult = await photoService.AddPhotoAsync(requestDto.Image);
@@ -125,7 +120,7 @@ namespace AssetMgmtApi.Controllers
         }
 
 
-        [HttpDelete("{id}")]
+        [HttpDelete("{id:guid}")]
         [Authorize(Roles = "Admin")]
         public async Task<IActionResult> Delete([FromRoute] Guid id)
         {
