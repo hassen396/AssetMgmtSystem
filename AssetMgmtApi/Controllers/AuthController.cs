@@ -1,44 +1,30 @@
 using System.IdentityModel.Tokens.Jwt;
 using System.Security.Claims;
-using AssetMgmtApi.DTOs;
 using AssetMgmtApi.DTOs.Auth;
+using AssetMgmtApi.Interfaces;
 using AssetMgmtApi.Models;
+using AssetMgmtApi.Services;
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Mvc;
-using Microsoft.AspNetCore.Authorization;
-using AssetMgmtApi.Interfaces;
-using AssetMgmtApi.Services;
 
 namespace AssetMgmtApi.Controllers
 {
     [ApiController]
     [Route("api/[controller]")]
-    public class AuthController : ControllerBase
+    public class AuthController(
+        UserManager<User> userManager,
+        IAuthRepo authRepo,
+        IAuthService authService,
+        RoleManager<IdentityRole<Guid>> roleManager)
+        : ControllerBase
     {
-        private readonly UserManager<User> _userManager;
-
-        // private readonly IConfiguration _configuration;
-        private readonly IAuthRepo _authRepo;
-        private readonly IAuthService _authService;
-        private readonly RoleManager<IdentityRole<Guid>> _roleManager;
-
-        public AuthController(
-            UserManager<User> userManager,
-            IAuthRepo authRepo,
-            IAuthService authService,
-            RoleManager<IdentityRole<Guid>> roleManager)
-        {
-            _userManager = userManager;
-            _authRepo = authRepo;
-            _authService = authService;
-            _roleManager = roleManager;
-        }
 
 
         [HttpPost("register")]
         public async Task<IActionResult> Register([FromBody] RegisterDto registerDto)
         {
-            var roleExists = await _roleManager.RoleExistsAsync(registerDto.Role);
+            var roleExists = await roleManager.RoleExistsAsync(registerDto.Role);
             if (!roleExists)
                 return BadRequest(new { message = $"Role '{registerDto.Role}' does not exist." });
 
@@ -49,13 +35,13 @@ namespace AssetMgmtApi.Controllers
                 Email = registerDto.Email,
                 UserName = registerDto.Email,
             };
-            
-            var result = await _userManager.CreateAsync(user, registerDto.Password);
+
+            var result = await userManager.CreateAsync(user, registerDto.Password);
             if (!result.Succeeded)
                 return BadRequest(result.Errors);
 
 
-            await _userManager.AddToRoleAsync(user, registerDto.Role);
+            await userManager.AddToRoleAsync(user, registerDto.Role);
 
             return Ok("user created successfully");
         }
@@ -71,13 +57,13 @@ namespace AssetMgmtApi.Controllers
         [HttpPost("login")]
         public async Task<IActionResult> Login([FromBody] LoginDto loginDto)
         {
-            var user = await _userManager.FindByEmailAsync(loginDto.Email);
-            if (user == null || !await _userManager.CheckPasswordAsync(user, loginDto.Password))
+            var user = await userManager.FindByEmailAsync(loginDto.Email);
+            if (user == null || !await userManager.CheckPasswordAsync(user, loginDto.Password))
             {
                 return Unauthorized();
             }
 
-            var accessToken = _authService.GenerateAccessToken(user);
+            var accessToken = authService.GenerateAccessToken(user);
             var refreshToken = await CreateAndStoreRefreshToken(user.Id);
 
             SetRefreshTokenCookie(refreshToken);
@@ -88,9 +74,9 @@ namespace AssetMgmtApi.Controllers
 
         private async Task<RefreshToken> CreateAndStoreRefreshToken(Guid userId)
         {
-            await _authRepo.GetExpiredRefreshTokensAsync(userId);
+            await authRepo.GetExpiredRefreshTokensAsync(userId);
 
-            var refreshToken = await _authRepo.AddRefreshTokenAsync(userId);
+            var refreshToken = await authRepo.AddRefreshTokenAsync(userId);
             SetRefreshTokenCookie(refreshToken);
             return refreshToken;
         }
@@ -126,13 +112,13 @@ namespace AssetMgmtApi.Controllers
                 return Unauthorized();
             }
 
-            var user = await _userManager.FindByIdAsync(userId);
+            var user = await userManager.FindByIdAsync(userId);
             if (user == null)
             {
                 return NotFound();
             }
 
-            var roles = await _userManager.GetRolesAsync(user);
+            var roles = await userManager.GetRolesAsync(user);
             // Ensure role is returned with correct case
             var role = roles.FirstOrDefault() ?? "";
             // Log the role for debugging
@@ -159,7 +145,7 @@ namespace AssetMgmtApi.Controllers
             if (string.IsNullOrEmpty(refreshTokenString))
                 return Unauthorized(new { Message = "Missing refresh token." });
 
-            var result = await _authService.RefreshTokenAsync(refreshTokenString);
+            var result = await authService.RefreshTokenAsync(refreshTokenString);
 
             if (!result.IsSuccess)
             {
@@ -187,10 +173,10 @@ namespace AssetMgmtApi.Controllers
             if (string.IsNullOrEmpty(refreshTokenString))
                 return BadRequest("no refresh token to invalidate");
 
-            var storedToken = await _authRepo.GetRefreshTokenAsync(refreshTokenString);
+            var storedToken = await authRepo.GetRefreshTokenAsync(refreshTokenString);
             if (storedToken != null)
             {
-                await _authRepo.RevokeTokenAsync(refreshTokenString);
+                await authRepo.RevokeTokenAsync(refreshTokenString);
             }
 
             Response.Cookies.Delete("X-Refresh-Token");

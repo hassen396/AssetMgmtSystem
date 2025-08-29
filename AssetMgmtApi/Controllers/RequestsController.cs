@@ -1,39 +1,27 @@
-using Microsoft.AspNetCore.Mvc;
-using Microsoft.AspNetCore.Authorization;
-using AssetMgmtApi.Data;
-using AssetMgmtApi.Models;
-using Microsoft.EntityFrameworkCore;
-using System.Security.Claims;
 using System.IdentityModel.Tokens.Jwt;
-using AssetMgmtApi.Interfaces;
-using AssetMgmtApi.DTOs;
+using System.Security.Claims;
+using AssetMgmtApi.Data;
 using AssetMgmtApi.DTOs.AssetRequest;
+using AssetMgmtApi.Interfaces;
 using AssetMgmtApi.Mappers;
+using AssetMgmtApi.Models;
 using AssetMgmtApi.Utils;
+using Microsoft.AspNetCore.Authorization;
+using Microsoft.AspNetCore.Mvc;
+using Microsoft.EntityFrameworkCore;
 
 namespace AssetMgmtApi.Controllers
 {
     [ApiController]
     [Route("api/[controller]")]
-    public class RequestsController : ControllerBase
+    public class RequestsController(ApplicationDbContext context, IRequestRepo requestRepo, IAssetRepo assetRepo)
+        : ControllerBase
     {
-        private readonly ApplicationDbContext _context;
-        private readonly IRequestRepo _requestRepo;
-        private readonly IAssetRepo _assetRepo;
-
-
-        public RequestsController(ApplicationDbContext context, IRequestRepo requestRepo, IAssetRepo assetRepo)
-        {
-            _requestRepo = requestRepo;
-            _context = context;
-            _assetRepo = assetRepo;
-        }
-
         [HttpGet("get-paginated-requests")]
-        // [Authorize(Roles = "Admin")]
+        [Authorize(Roles = "Admin")]
         public async Task<IActionResult> GetRequests([FromQuery] RequestQueryObject assetQuery)
         {
-            var assetRequests = await _requestRepo.GetAllRequestsAsync(assetQuery);
+            var assetRequests = await requestRepo.GetAllRequestsAsync(assetQuery);
             if (assetRequests == null) return NotFound(new { Message = "there is no request" });
             // var assetsRequestsDto = assetRequests.Select(AssetRequestExportMapper.MapToDto).ToList();
             return Ok(assetRequests);
@@ -43,10 +31,11 @@ namespace AssetMgmtApi.Controllers
         [Authorize]
         public async Task<IActionResult> GetMyRequests()
         {
-            var userId = User.FindFirstValue(ClaimTypes.NameIdentifier) ?? User.FindFirstValue(JwtRegisteredClaimNames.Sub);
+            var userId = User.FindFirstValue(ClaimTypes.NameIdentifier) ??
+                         User.FindFirstValue(JwtRegisteredClaimNames.Sub);
             if (userId == null) return Unauthorized();
 
-            var myRequests = await _context.AssetRequests
+            var myRequests = await context.AssetRequests
                 .Where(r => r.UserId == Guid.Parse(userId))
                 .Include(r => r.Asset)
                 .Include(r => r.User)
@@ -64,7 +53,7 @@ namespace AssetMgmtApi.Controllers
             if (!Enum.IsDefined(typeof(RequestStatus), status))
                 return BadRequest("Invalid status value");
 
-            var requests = await _context.AssetRequests
+            var requests = await context.AssetRequests
                 .Where(r => (int)r.Status == status)
                 .Include(r => r.Asset)
                 .Include(r => r.User)
@@ -75,33 +64,33 @@ namespace AssetMgmtApi.Controllers
             return Ok(requestsDto);
         }
 
-        [HttpPost]
+        [HttpPost("create")]
         [Authorize]
         public async Task<IActionResult> Create([FromBody] CreateRequestDto dto)
         {
-            var userId = User.FindFirstValue(ClaimTypes.NameIdentifier) ?? User.FindFirstValue(JwtRegisteredClaimNames.Sub);
+            var userId = User.FindFirstValue(ClaimTypes.NameIdentifier) ??
+                         User.FindFirstValue(JwtRegisteredClaimNames.Sub);
             if (userId == null) return Unauthorized();
 
-            var asset = await _assetRepo.GetAssetByIdAsync(dto.AssetId);
+            var asset = await assetRepo.GetAssetByIdAsync(dto.AssetId);
             // await _db.Assets.FindAsync(dto.AssetId);
             if (asset == null || asset.Status == AssetStatus.Assigned) return BadRequest("Asset not available");
 
-            var request = await _requestRepo.CreateAsync(dto, Guid.Parse(userId));
+            var request = await requestRepo.CreateAsync(dto, Guid.Parse(userId));
             return Ok(request);
         }
 
-        [HttpPost("{id}/approve")]
+        [HttpPost("{id:guid}/approve")]
         [Authorize(Roles = "Admin")]
         public async Task<IActionResult> Approve(Guid id)
         {
-            var req = await _requestRepo.GetAssetRequestAsync(id);
+            var req = await requestRepo.GetAssetRequestAsync(id);
             if (req == null) return NotFound();
-            // if (req.Status != RequestStatus.Pending) return BadRequest("Already processed");
 
             // set request approved & asset assigned
             req.Status = RequestStatus.Approved;
             if (req.Asset != null) req.Asset.Status = AssetStatus.Assigned;
-            await _context.SaveChangesAsync();
+            await context.SaveChangesAsync();
             return Ok(req);
         }
 
@@ -109,14 +98,12 @@ namespace AssetMgmtApi.Controllers
         [Authorize(Roles = "Admin")]
         public async Task<IActionResult> Reject(Guid id)
         {
-            var req = await _context.AssetRequests.FindAsync(id);
+            var req = await context.AssetRequests.FindAsync(id);
             if (req == null) return NotFound();
             // if (req.Status != RequestStatus.Pending) return BadRequest("Already processed");
             req.Status = RequestStatus.Rejected;
-            await _context.SaveChangesAsync();
+            await context.SaveChangesAsync();
             return Ok(req);
         }
     }
-
-
 }

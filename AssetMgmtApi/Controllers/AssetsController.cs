@@ -1,35 +1,25 @@
-using Microsoft.AspNetCore.Mvc;
-using Microsoft.AspNetCore.Authorization;
+using AssetMgmtApi.DTOs.Asset;
 using AssetMgmtApi.Interfaces;
 using AssetMgmtApi.Mappers;
-using AssetMgmtApi.DTOs.Asset;
 using AssetMgmtApi.Models;
 using AssetMgmtApi.Services;
 using AssetMgmtApi.Utils;
+using Microsoft.AspNetCore.Authorization;
+using Microsoft.AspNetCore.Mvc;
 
 namespace AssetMgmtApi.Controllers
 {
     [ApiController]
     [Route("api/[controller]")]
-    public class AssetsController : ControllerBase
+    public class AssetsController(IAssetRepo assetRepo, IPhotoService photoService) : ControllerBase
     {
-        private readonly IAssetRepo _assetRepo;
-        private readonly IPhotoService _photoService;
-
-        public AssetsController(IAssetRepo assetRepo, IPhotoService photoService)
-        {
-            _assetRepo = assetRepo;
-            _photoService = photoService;
-        }
-
-        [HttpGet("get-paginated-assets")]
-        // [Authorize]
+        [HttpGet("paginated-assets")]
+        [Authorize]
         public async Task<IActionResult> GetAssets([FromQuery] AssetQueryObject assetQuery)
         {
-            var assetsList = await _assetRepo.GetAllAssetsAsync(assetQuery);
+            var assetsList = await assetRepo.GetAllAssetsAsync(assetQuery);
             if (assetsList == null)
                 return NotFound("No asset is available");
-            // var assetsDto = assets.Select(AssetExportMapper.MapToDto).ToList();
             return Ok(assetsList);
         }
 
@@ -37,28 +27,26 @@ namespace AssetMgmtApi.Controllers
         //TODO this method down below is added in the GetAssets method using filter,
         //update the frontend to use the filter instead
 
-        [HttpGet("available")]
-        // [Authorize]
+        [HttpGet("available-assets")]
+        [Authorize]
         public async Task<IActionResult> GetAvailableAssets()
         {
             var query = new AssetQueryObject
             {
                 Status = 0
             };
-            var assetsList = await _assetRepo.GetAllAssetsAsync(query);
+            var assetsList = await assetRepo.GetAllAssetsAsync(query);
             if (assetsList == null)
                 return NotFound("No asset is available");
 
-            // var availableAssets = assets.Where(a => a.Status == AssetStatus.Available);
-            // var assetsDto = assets.Select(AssetExportMapper.MapToDto).ToList();
             return Ok(assetsList);
         }
 
-        [HttpGet("{id}")]
+        [HttpGet("{id:guid}")]
         [Authorize]
         public async Task<IActionResult> Get(Guid id)
         {
-            var asset = await _assetRepo.GetAssetByIdAsync(id);
+            var asset = await assetRepo.GetAssetByIdAsync(id);
             //map the domain asset to a respective dto
             if (asset == null) return NotFound("no asset was found with the specified id");
             var assetDto = AssetExportMapper.MapToDto(asset);
@@ -66,16 +54,16 @@ namespace AssetMgmtApi.Controllers
         }
 
         [HttpPost("create")]
-        // [Authorize(Roles = "Admin")]
+        [Authorize(Roles = "Admin")]
         public async Task<IActionResult> Create([FromForm] CreateUpdateAssetDto requestDto)
         {
             if (!ModelState.IsValid)
                 return BadRequest(ModelState);
             var asset = DtoExportMapper.MapFromDto(requestDto);
 
-            if (requestDto.Image != null && requestDto.Image.Length > 0)
+            if (requestDto.Image is { Length: > 0 })
             {
-                var uploadResult = await _photoService.AddPhotoAsync(requestDto.Image);
+                var uploadResult = await photoService.AddPhotoAsync(requestDto.Image);
 
                 if (uploadResult.Error != null)
                     return BadRequest(uploadResult.Error.Message);
@@ -85,7 +73,7 @@ namespace AssetMgmtApi.Controllers
                 asset.ImagePublicId = uploadResult.PublicId;
             }
 
-            await _assetRepo.CreatAssetAsync(asset);
+            await assetRepo.CreatAssetAsync(asset);
 
             var createdAssetDto = AssetExportMapper.MapToDto(asset);
 
@@ -93,14 +81,14 @@ namespace AssetMgmtApi.Controllers
         }
 
 
-        [HttpPut("{id}")]
-        // [Authorize(Roles = "Admin")]
+        [HttpPut("{id:guid}")]
+        [Authorize(Roles = "Admin")]
         public async Task<IActionResult> Update([FromRoute] Guid id, [FromForm] CreateUpdateAssetDto requestDto)
         {
             if (!ModelState.IsValid)
                 return BadRequest(ModelState);
 
-            var asset = await _assetRepo.GetAssetByIdAsync(id);
+            var asset = await assetRepo.GetAssetByIdAsync(id);
             if (asset == null)
                 return NotFound("Asset not found.");
 
@@ -110,17 +98,15 @@ namespace AssetMgmtApi.Controllers
             asset.SerialNumber = requestDto.SerialNumber;
             asset.PurchaseDate = requestDto.PurchaseDate.ToUniversalTime();
             asset.Status = (AssetStatus)requestDto.Status;
-            // Add other fields as needed
 
-            // Handle image upload if provided
-            if (requestDto.Image != null && requestDto.Image.Length > 0)
+            if (requestDto.Image is { Length: > 0 })
             {
-                var uploadResult = await _photoService.AddPhotoAsync(requestDto.Image);
+                var uploadResult = await photoService.AddPhotoAsync(requestDto.Image);
                 if (uploadResult.Error != null)
                     return BadRequest(uploadResult.Error.Message);
                 if (asset.ImagePublicId != null)
                 {
-                    var deleteResult = await _photoService.DeletePhotoAsync(asset.ImagePublicId);
+                    var deleteResult = await photoService.DeletePhotoAsync(asset.ImagePublicId);
                     if(deleteResult.Error != null)  return BadRequest(new { Message = deleteResult.Error }) ;
                 }
 
@@ -128,26 +114,26 @@ namespace AssetMgmtApi.Controllers
                 asset.ImagePublicId = uploadResult.PublicId;
             }
 
-            var updatedAsset = await _assetRepo.UpdateAssetAsync(asset, id);
+            var updatedAsset = await assetRepo.UpdateAssetAsync(asset, id);
             var updatedAssetDto = AssetExportMapper.MapToDto(updatedAsset!);
             return Ok(updatedAssetDto);
         }
 
 
-        [HttpDelete("{id}")]
-        // [Authorize(Roles = "Admin")]
+        [HttpDelete("{id:guid}")]
+        [Authorize(Roles = "Admin")]
         public async Task<IActionResult> Delete([FromRoute] Guid id)
         {
-            var asset = await _assetRepo.GetAssetByIdAsync(id);
+            var asset = await assetRepo.GetAssetByIdAsync(id);
             if (asset == null) return NotFound(new { Message = "Asset not not exist!" });
             if (asset.ImagePublicId != null)
             {
-                await _photoService.DeletePhotoAsync(asset.ImagePublicId);
+                await photoService.DeletePhotoAsync(asset.ImagePublicId);
             }
             
-            await _assetRepo.DeleteAssetAsync(id);
+            await assetRepo.DeleteAssetAsync(id);
             
-            return Ok(new { Message = "Deleted Succussfully" });
+            return Ok(new { Message = "Deleted Successfully" });
         }
     }
 }

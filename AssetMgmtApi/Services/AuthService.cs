@@ -1,7 +1,6 @@
 using System.IdentityModel.Tokens.Jwt;
 using System.Security.Claims;
 using System.Text;
-using AssetMgmtApi.DTOs;
 using AssetMgmtApi.DTOs.Auth;
 using AssetMgmtApi.Interfaces;
 using AssetMgmtApi.Models;
@@ -10,22 +9,12 @@ using Microsoft.IdentityModel.Tokens;
 
 namespace AssetMgmtApi.Services
 {
-    public class AuthService : IAuthService
+    public class AuthService(IConfiguration configuration, IAuthRepo authRepo, UserManager<User> userManager)
+        : IAuthService
     {
-        private readonly IConfiguration _configuration;
-        private readonly IAuthRepo _authRepo;
-        private readonly UserManager<User> _userManager;
-        public AuthService(IConfiguration configuration, IAuthRepo authRepo, UserManager<User> userManager)
-        {
-            _configuration = configuration;
-            _authRepo = authRepo;
-             _userManager = userManager;
-        }
-
-
         public async Task<TokenRefreshResult> RefreshTokenAsync(string refreshTokenString)
         {
-            var storedToken = await _authRepo.GetRefreshTokenAsync(refreshTokenString);
+            var storedToken = await authRepo.GetRefreshTokenAsync(refreshTokenString);
 
             if (storedToken == null)
             {
@@ -39,24 +28,24 @@ namespace AssetMgmtApi.Services
 
             if (storedToken.IsRevoked)
             {
-                await _authRepo.RevokeAllTokensForUserAsync(storedToken.UserId);
+                await authRepo.RevokeAllTokensForUserAsync(storedToken.UserId);
                 return new TokenRefreshResult { IsSuccess = false, ErrorMessage = "Token compromised." };
             }
 
-            var user = await _userManager.FindByIdAsync(storedToken.UserId.ToString());
+            var user = await userManager.FindByIdAsync(storedToken.UserId.ToString());
             if (user == null)
             {
                 return new TokenRefreshResult { IsSuccess = false, ErrorMessage = "User not found." };
             }
 
 
-            await _authRepo.RevokeTokenAsync(refreshTokenString);
+            await authRepo.RevokeTokenAsync(refreshTokenString);
 
             var accessTokenObject = GenerateAccessToken(user); 
             var accessToken = new JwtSecurityTokenHandler().WriteToken(accessTokenObject);
 
             
-            var newRefreshToken = await _authRepo.AddRefreshTokenAsync(user.Id);
+            var newRefreshToken = await authRepo.AddRefreshTokenAsync(user.Id);
 
             return new TokenRefreshResult
             {
@@ -70,7 +59,7 @@ namespace AssetMgmtApi.Services
         
         public JwtSecurityToken GenerateAccessToken(User user)
         {
-            var roles = _userManager.GetRolesAsync(user).Result; 
+            var roles = userManager.GetRolesAsync(user).Result; 
 
             var claims = new List<Claim>
             {
@@ -82,12 +71,12 @@ namespace AssetMgmtApi.Services
 
             claims.AddRange(roles.Select(r => new Claim(ClaimTypes.Role, r)));
 
-            var key = new SymmetricSecurityKey(Encoding.UTF8.GetBytes(_configuration["Jwt:Key"]!));
+            var key = new SymmetricSecurityKey(Encoding.UTF8.GetBytes(configuration["Jwt:Key"]!));
             var creds = new SigningCredentials(key, SecurityAlgorithms.HmacSha256);
 
             var accessToken = new JwtSecurityToken(
-                issuer: _configuration["Jwt:Issuer"],
-                audience: _configuration["Jwt:Audience"],
+                issuer: configuration["Jwt:Issuer"],
+                audience: configuration["Jwt:Audience"],
                 claims: claims,
                 expires: DateTime.UtcNow.AddMinutes(15),
                 signingCredentials: creds

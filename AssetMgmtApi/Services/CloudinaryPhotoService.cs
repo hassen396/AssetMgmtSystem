@@ -1,9 +1,6 @@
 using CloudinaryDotNet;
 using CloudinaryDotNet.Actions;
-using Microsoft.AspNetCore.Http;
 using Microsoft.Extensions.Options;
-using System.Threading.Tasks;
-using AssetMgmtApi.Services;
 
 namespace AssetMgmtApi.Services;
 public class CloudinaryPhotoService : IPhotoService
@@ -52,7 +49,7 @@ public class CloudinaryPhotoService : IPhotoService
 // Helper class to map the settings
 public class CloudinarySettings
 {
-    public string CloudName { get; set; }
-    public string ApiKey { get; set; }
-    public string ApiSecret { get; set; }
+    public string? CloudName { get; set; }
+    public string? ApiKey { get; init; }
+    public string? ApiSecret { get; init; }
 }
